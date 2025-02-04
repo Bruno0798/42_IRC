@@ -1,22 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <netdb.h>
-# include <cstring>
-# include <cstdlib>
-# include <iostream>
-# include <vector>
-# include <map>
-# include <poll.h>
-# include <unistd.h>
-# include <sstream>
-# include <string>
-# include <cerrno>
-# include <ctime>
+#include "Irc.hpp"
+#include "Client.hpp"
 
 class Server
 {
@@ -26,6 +12,7 @@ private:
 	int _port;
 	int _fd;
 	std::string _password;
+	std::vector<Client> _clients;
 public:
 	Server();
 	Server(int _port, std::string& password);
@@ -35,6 +22,15 @@ public:
 	bool fillServerInfo(char *port);
 	bool initServer();
 	void runServer();
+	void handleCommand(int client_fd, const std::string& command);
+
+	struct ClientFdMatcher {
+		int client_fd;
+		ClientFdMatcher(int fd) : client_fd(fd) {}
+		bool operator()(const Client& client) const {
+			return client.getFd() == client_fd;
+		}
+	};
 };
 
 #endif
