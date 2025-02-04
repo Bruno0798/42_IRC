@@ -33,7 +33,8 @@ public:
 
 	void setAddress();
 	bool fillServerInfo(char *port);
-	bool setupServer();
+	bool initServer();
+	void runServer();
 };
 
 #endif

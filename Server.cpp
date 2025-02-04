@@ -1,12 +1,5 @@
+#include "Irc.hpp"
 #include "Server.hpp"
-
-#define blue "\033[34m"
-#define red "\033[31m"
-#define green "\033[32m"
-#define yellow "\033[33m"
-#define magenta "\033[35m"
-#define cyan "\033[36m"
-#define reset "\033[0m"
 
 Server::Server()
 {
@@ -15,7 +8,7 @@ Server::Server()
 
 Server::Server(int port, std::string& password): _servinfo(NULL), _port(port), _password(password)
 {
-	std::cout << yellow << "Server running ..." << reset << std::endl;
+	std::cout << YELLOW << "Server running ..." << WHITE << std::endl;
 	memset(&_address, 0, sizeof(_address));
 }
 
@@ -35,12 +28,43 @@ void Server::setAddress()
 
 bool Server::fillServerInfo(char *port)
 {
-	std::cout << port << std::endl;
 	if (getaddrinfo(NULL, port, &_address, &_servinfo) < 0)
 	{
-		std::cerr << red << "[Server] Flop addrinfo" << reset << std::endl;
+		std::cerr << RED << "[Server] Address Failed" << WHITE << std::endl;
 		return (false);
 	}
 	return (true);
 }
 
+bool Server::initServer()
+{
+	_fd = socket(_servinfo->ai_family, _servinfo->ai_socktype, _servinfo->ai_protocol);
+	if(_fd == -1)
+	{
+		std::cerr << RED << "[Server] Socket Failed" << WHITE <<  std::endl;
+		return false;
+	}
+	int optvalue = 1;
+	if(setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &optvalue, sizeof (optvalue)) == -1)
+	{
+		std::cerr << RED << "[Server] Impossible to reuse" << WHITE<< std::endl;
+		return false;
+	}
+	if (bind(_fd, _servinfo->ai_addr, _servinfo->ai_addrlen) == -1)
+	{
+		std::cerr << RED << "[Server] Port already in use" << WHITE << std::endl;
+		return false;
+	}
+	if (listen(_fd, 10) == -1)
+	{
+		std::cerr << RED << "[Server] Listen failed" << WHITE << std::endl;
+		return false;
+	}
+	freeaddrinfo(_servinfo);
+	return true;
+}
+
+void Server::runServer()
+{
+
+}
