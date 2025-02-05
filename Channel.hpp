@@ -13,6 +13,7 @@ public:
 
 	void addClient(int client_fd) { _clients.push_back(client_fd); }
 	const std::string& getName() const { return _name; }
+	const std::vector<int>& getClients() const { return _clients; } // Add this line
 
 private:
 	std::string _name;

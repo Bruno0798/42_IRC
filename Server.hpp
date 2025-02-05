@@ -27,6 +27,8 @@ public:
 	void handleCommand(const std::string& command, int client_fd);
 	void handlePing(int client_fd, const std::string& message);
 	void handleJoin(int client_fd, const std::string& message);
+	void handleWho(int client_fd, const std::string& message);
+	void handlePrivmsg(int client_fd, const std::string& message);
 
 
 	struct ClientFdMatcher {
