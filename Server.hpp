@@ -3,6 +3,7 @@
 
 #include "Irc.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Server
 {
@@ -13,6 +14,7 @@ private:
 	int _fd;
 	std::string _password;
 	std::vector<Client> _clients;
+	std::map<std::string, Channel> _channels;
 public:
 	Server();
 	Server(int _port, std::string& password);
@@ -24,6 +26,7 @@ public:
 	void runServer();
 	void handleCommand(const std::string& command, int client_fd);
 	void handlePing(int client_fd, const std::string& message);
+	void handleJoin(int client_fd, const std::string& message);
 
 
 	struct ClientFdMatcher {

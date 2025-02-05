@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <set>
 
 class Client
 {
@@ -13,6 +14,7 @@ private:
 	std::string _nickname;
 	std::string _username;
 	std::string _realname;
+	std::set<std::string> _joinedChannels; // Keep track of joined channels
 	bool _registered;
 
 public:
@@ -35,6 +37,17 @@ public:
 	void setUserName(const std::string username);
 	void setRealName(const std::string realname);
 	void setRegistered(bool registered);
+
+	void joinChannel(const std::string& channelName) {
+		_joinedChannels.insert(channelName);
+	}
+
+	void leaveChannel(const std::string& channelName) {
+		_joinedChannels.erase(channelName);
+	}
+
+	const std::set<std::string>& getJoinedChannels() const { return _joinedChannels; }
+
 };
 
 #endif

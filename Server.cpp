@@ -74,6 +74,10 @@ void Server::handleCommand(const std::string& command, int client_fd)
 	{
 		handlePing(client_fd, command);
 	}
+	else if (cmd == "JOIN")
+	{
+		handleJoin(client_fd, command);
+	}
 	else
 	{
 		std::cerr << "Unknown command: " << cmd << std::endl;
@@ -82,7 +86,42 @@ void Server::handleCommand(const std::string& command, int client_fd)
 
 void Server::handlePing(int client_fd, const std::string& message)
 {
-	std::string response = "PONG " + message.substr(5); // Assuming message is "PING <data>"
+
+	std::string response = ":bsousa-d!bsousa-d@localhost ";
+	response += "PONG localhost " + message.substr(5) + "\r\n"; // Assuming message is "PING <data>"
+	send(client_fd, response.c_str(), response.size(), 0);
+}
+
+void Server::handleJoin(int client_fd, const std::string& message)
+{
+	std::istringstream iss(message);
+	std::string cmd, channel_name;
+	iss >> cmd >> channel_name;
+
+	if (channel_name.empty())
+	{
+		std::cerr << "JOIN command requires a channel name" << std::endl;
+		return;
+	}
+
+	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+	if (it == _channels.end())
+	{
+		// Create a new channel if it doesn't exist
+		Channel new_channel(channel_name);
+		new_channel.addClient(client_fd);
+		_channels[channel_name] = new_channel;
+		std::cout << "Created and joined new channel: " << channel_name << std::endl;
+	}
+	else
+	{
+		// Add client to existing channel
+		it->second.addClient(client_fd);
+		std::cout << "Joined existing channel: " << channel_name << std::endl;
+	}
+	//todo: change to source
+	std::string response = ":bsousa-d!bsousa-d@localhost ";
+	response += "JOIN " + channel_name + "\r\n";
 	send(client_fd, response.c_str(), response.size(), 0);
 }
 
