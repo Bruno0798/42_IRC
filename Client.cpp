@@ -6,17 +6,21 @@ Client::Client()
 	std::cout << "Client Default Constructor Called" << std::endl;
 }
 
+Client::Client(int fd)
+		: _fd(fd), _registered(false) // Initialize other members if necessary
+{
+	std::cout << "Client Constructor with fd Called" << std::endl;
+}
 
 Client::Client(int fd, const std::string& address, int port)
-		: _fd(fd), _ipAddress(address), _port(port) {}
+		: _fd(fd), _ipAddress(address), _port(port), _registered(false) {}
 
 Client::~Client()
 {
 	std::cout << "Client Destructor Called" << std::endl;
 }
 
-// GETTERS
-
+// Getters
 int Client::getFd() const
 {
 	return _fd;
@@ -42,8 +46,7 @@ bool Client::isRegistered() const
 	return _registered;
 }
 
-//setters
-
+// Setters
 void Client::setFd(int fd)
 {
 	_fd = fd;
@@ -53,7 +56,6 @@ void Client::setIpAddress(const std::string& ip)
 {
 	_ipAddress = ip;
 }
-
 
 void Client::setNickname(const std::string nickname)
 {

@@ -35,7 +35,6 @@ int main(int argc, char **argv)
 	Server server(port, password);
 
 	// Set up server
-	server.setAddress();
 	if (!server.fillServerInfo(argv[1]))
 	{
 		std::cerr << "Failed to fill server info." << std::endl;

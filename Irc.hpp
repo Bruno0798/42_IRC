@@ -18,6 +18,7 @@
 # include <cerrno>
 # include <ctime>
 # include <algorithm>
+# include <cstdio>
 
 #define BLUE "\033[34m"
 #define RED "\033[31m"
