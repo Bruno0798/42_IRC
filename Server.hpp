@@ -22,7 +22,9 @@ public:
 	bool fillServerInfo(char *port);
 	bool initServer();
 	void runServer();
-	void handleCommand(int client_fd, const std::string& command);
+	void handleCommand(const std::string& command, int client_fd);
+	void handlePing(int client_fd, const std::string& message);
+
 
 	struct ClientFdMatcher {
 		int client_fd;

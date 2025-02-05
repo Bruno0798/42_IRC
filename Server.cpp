@@ -64,6 +64,28 @@ bool Server::initServer()
 	return true;
 }
 
+void Server::handleCommand(const std::string& command, int client_fd)
+{
+	std::istringstream iss(command);
+	std::string cmd;
+	iss >> cmd;
+
+	if (cmd == "PING")
+	{
+		handlePing(client_fd, command);
+	}
+	else
+	{
+		std::cerr << "Unknown command: " << cmd << std::endl;
+	}
+}
+
+void Server::handlePing(int client_fd, const std::string& message)
+{
+	std::string response = "PONG " + message.substr(5); // Assuming message is "PING <data>"
+	send(client_fd, response.c_str(), response.size(), 0);
+}
+
 void Server::runServer()
 {
 	std::vector<struct pollfd> fds;
@@ -124,6 +146,7 @@ void Server::runServer()
 					{
 						buffer[bytes_received] = '\0';
 						std::cout << "Received: " << buffer << " from fd: " << fds[i].fd << std::endl;
+						handleCommand(buffer, fds[i].fd);
 					}
 				}
 			}
