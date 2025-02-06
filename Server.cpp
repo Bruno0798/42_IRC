@@ -40,7 +40,7 @@ bool Server::initServer()
 	}
 
 	int yes = 1;
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
 		perror("setsockopt");
 		return false;

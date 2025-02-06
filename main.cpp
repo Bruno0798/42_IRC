@@ -30,7 +30,7 @@ int check_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	int port = check_args(argc, argv);
-	std::string password(argv[2]); // Converts password to std::string
+	std::string password(argv[2]); //Converts password to std::string
 
 	Server server(port, password);
 

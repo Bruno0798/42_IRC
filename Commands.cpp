@@ -10,25 +10,15 @@ void Server::handleCommand(const std::string& command, int client_fd)
 	iss >> cmd;
 
 	if (cmd == "PING")
-	{
 		handlePing(client_fd, command);
-	}
 	else if (cmd == "JOIN")
-	{
 		handleJoin(client_fd, command);
-	}
 	else if (cmd == "WHO")
-	{
 		handleWho(client_fd, command);
-	}
 	else if (cmd == "PRIVMSG")
-	{
 		handlePrivmsg(client_fd, command);
-	}
 	else
-	{
 		std::cerr << "Unknown command: " << cmd << std::endl;
-	}
 }
 
 void Server::handlePrivmsg(int client_fd, const std::string& message)
@@ -53,9 +43,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	std::string response = ":";
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
-	{
 		response += client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG " + target + " :" + msg + "\r\n";
-	}
 
 	// Check if the target is a channel
 	std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
@@ -65,9 +53,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		for (std::vector<int>::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
 		{
 			if (*it != client_fd)
-			{
 				send(*it, response.c_str(), response.size(), 0);
-			}
 		}
 	}
 	else
@@ -75,13 +61,9 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		// Target is a user
 		std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 		if (target_it != _clients.end())
-		{
 			send(target_it->getFd(), response.c_str(), response.size(), 0);
-		}
 		else
-		{
 			std::cerr << "User not found: " << target << std::endl;
-		}
 	}
 }
 
@@ -161,7 +143,6 @@ void Server::handleWho(int client_fd, const std::string& message)
 			response += client_it->getNickname() + " ";
 		}
 	}
-
 	response += "\r\n";
 	send(client_fd, response.c_str(), response.size(), 0);
 }
