@@ -1,9 +1,10 @@
 NAME = ircserv
 
-SRC = main.cpp Server.cpp Client.cpp Channel.cpp
+SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp
 OBJ = $(SRC:.cpp=.o)
 
-CFLAGS = -std=c++98 #-Wall -Werror -Wextra
+#CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -std=c++98
 
 all: $(NAME)
 
