@@ -83,7 +83,7 @@ void Server::runServer()
 
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
-			if (fds[i].revents & POLLIN)
+			if (fds[i].revents & POLLIN) // If the event that occurred is a POLLIN (aka "data is ready to recv() on this socket")
 			{
 				if (fds[i].fd == _fd) // New connection
 				{
@@ -111,13 +111,9 @@ void Server::runServer()
 					if (bytes_received <= 0)
 					{
 						if (bytes_received == 0)
-						{
 							std::cout << "Client disconnected: " << fds[i].fd << std::endl;
-						}
 						else
-						{
 							perror("recv");
-						}
 						close(fds[i].fd);
 						fds.erase(fds.begin() + i);
 						--i;
@@ -126,10 +122,60 @@ void Server::runServer()
 					{
 						buffer[bytes_received] = '\0';
 						std::cout << "Received: " << buffer << " from fd: " << fds[i].fd << std::endl;
+						parseClientInfo(buffer, fds[i].fd);
 						handleCommand(buffer, fds[i].fd);
 					}
 				}
 			}
 		}
+	}
+}
+
+void Server::parseClientInfo(const std::string& buffer, int client_fd)
+{
+	std::istringstream iss(buffer);
+	std::string token;
+	std::string nickname, username, password;
+
+	// Assuming the buffer contains the nickname, username, and password in a specific format
+	// For example: "PASS <password> NICK <nickname> USER <username>"
+	while (iss >> token)
+	{
+		if (token == "PASS")
+		{
+			iss >> password;
+		}
+		else if (token == "NICK")
+		{
+			iss >> nickname;
+		}
+		else if (token == "USER")
+		{
+			iss >> username;
+		}
+	}
+
+	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
+
+	// Find the client and update its information
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if (client_it != _clients.end() && !(nickname.empty() || username.empty()))
+	{
+		client_it->setNickname(nickname);
+		client_it->setUserName(username);
+		client_it->setPassword(password);
+		if (password == _password)
+		{
+			client_it->authenticate();
+			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
+		}
+		else
+		{
+			std::cerr << "Invalid password for fd: " << client_fd << std::endl;
+		}
+	}
+	else
+	{
+		std::cerr << "Client not found for fd: " << client_fd << std::endl;
 	}
 }

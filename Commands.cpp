@@ -69,10 +69,13 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 
 void Server::handlePing(int client_fd, const std::string& message)
 {
-
-	std::string response = ":bsousa-d!bsousa-d@localhost ";
-	response += "PONG localhost " + message.substr(5) + "\r\n"; // Assuming message is "PING <data>"
-	send(client_fd, response.c_str(), response.size(), 0);
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if (client_it != _clients.end())
+	{
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost ";
+		response += "PONG localhost " + message.substr(5) + "\r\n"; // Assuming message is "PING <data>"
+		send(client_fd, response.c_str(), response.size(), 0);
+	}
 }
 
 void Server::handleJoin(int client_fd, const std::string& message)
@@ -102,12 +105,18 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		it->second.addClient(client_fd);
 		std::cout << "Joined existing channel: " << channel_name << std::endl;
 	}
-	//todo: change to source
-	std::string response = ":bsousa-d!bsousa-d@localhost ";
-	response += "JOIN " + channel_name + "\r\n";
-	send(client_fd, response.c_str(), response.size(), 0);
-	response = ":42 353 bsousa-d = #teste :@bsousa-d adeus ola tudo bem\r\n";
-	send(client_fd, response.c_str(), response.size(), 0);
+
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if (client_it != _clients.end())
+	{
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost ";
+		response += "JOIN " + channel_name + "\r\n";
+		std::cout << response << std::endl;
+		send(client_fd, response.c_str(), response.size(), 0);
+		response = ":42 353 " + client_it->getNickname() + " = " + channel_name + " :@" + client_it->getNickname() + "\r\n"; //TODO:After the @ list the members of the channel
+		send(client_fd, response.c_str(), response.size(), 0);
+		std::cout << response << std::endl;
+	}
 
 }
 

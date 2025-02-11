@@ -76,3 +76,14 @@ void Client::setRegistered(bool registered)
 {
 	_registered = registered;
 }
+
+void Client::setPassword(const std::string password)
+{
+	_password = password;
+}
+
+void Client::authenticate()
+{
+	_authenticated = true;
+
+}

@@ -29,14 +29,19 @@ public:
 	void handleJoin(int client_fd, const std::string& message);
 	void handleWho(int client_fd, const std::string& message);
 	void handlePrivmsg(int client_fd, const std::string& message);
+	void parseClientInfo(const std::string& buffer, int client_fd);
 
 
-	struct ClientFdMatcher {
-		int client_fd;
-		ClientFdMatcher(int fd) : client_fd(fd) {}
+	class ClientFdMatcher {
+	public:
+		ClientFdMatcher(int fd) : _fd(fd) {}
+
 		bool operator()(const Client& client) const {
-			return client.getFd() == client_fd;
+			return client.getFd() == _fd;
 		}
+
+	private:
+		int _fd;
 	};
 };
 

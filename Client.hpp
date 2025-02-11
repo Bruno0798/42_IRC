@@ -10,14 +10,17 @@ class Client
 private:
 	int _fd;
 	std::string _ipAddress;
-	int _port;
 	std::string _nickname;
 	std::string _username;
 	std::string _realname;
+	std::string _password;
+	int _port;
 	std::set<std::string> _joinedChannels; // Keep track of joined channels
-	bool _registered;
 
+	bool _registered;
+	bool _authenticated;
 public:
+
 	Client();
 	Client(int fd); // New constructor
 	Client(int fd, const std::string& address, int port);
@@ -28,6 +31,7 @@ public:
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getRealname() const;
+	char *getBuffer() const;
 	bool isRegistered() const;
 
 	// Setters
@@ -36,7 +40,10 @@ public:
 	void setNickname(const std::string nickname);
 	void setUserName(const std::string username);
 	void setRealName(const std::string realname);
+	void setPassword(const std::string password);
 	void setRegistered(bool registered);
+
+	void authenticate();
 
 	void joinChannel(const std::string& channelName) {
 		_joinedChannels.insert(channelName);
