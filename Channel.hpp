@@ -2,22 +2,33 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include <string>
-#include <vector>
+#include "Client.hpp"
+#include "Irc.hpp"
+
 
 class Channel
 {
-public:
-	Channel() {} // Default constructor
-	Channel(const std::string& name) : _name(name) {}
+	private:
+		
+		std::string _name;
+		std::map<int, std::vector<std::string> > _clients; // Os clientes e as suas permicoes
+		std::string _topic;
+		std::string _pass;
 
-	void addClient(int client_fd) { _clients.push_back(client_fd); }
-	const std::string& getName() const { return _name; }
-	const std::vector<int>& getClients() const { return _clients; } // Add this line
+	public:
+		Channel() {} // Default constructor
+		Channel(const std::string& name) : _name(name) {}
 
-private:
-	std::string _name;
-	std::vector<int> _clients;
+		void setName(std::string name);
+		void setTopic(std::string topic);
+
+		void addClient(int client_fd);
+		const std::string& getName();
+		const std::string& getTopic();
+		const std::map<int, std::vector<std::string> >& getClients() const;
+		void	removeClient(int client_fd);
+
+
 };
 
 #endif // CHANNEL_HPP

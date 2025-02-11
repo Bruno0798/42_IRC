@@ -50,10 +50,10 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	if (channel_it != _channels.end())
 	{
 		const Channel& channel = channel_it->second;
-		for (std::vector<int>::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
+		for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
 		{
-			if (*it != client_fd)
-				send(*it, response.c_str(), response.size(), 0);
+			if (it->first != client_fd)
+				send(it->first, response.c_str(), response.size(), 0);
 		}
 	}
 	else
@@ -142,10 +142,10 @@ void Server::handleWho(int client_fd, const std::string& message)
 	const Channel& channel = it->second;
 	std::string response = ":bsousa-d!bsousa-d@localhost 352 " + channel_name + " :";
 
-	const std::vector<int>& clients = channel.getClients();
-	for (std::vector<int>::const_iterator it = clients.begin(); it != clients.end(); ++it)
+	const std::map<int, std::vector<std::string> >& clients = channel.getClients();
+	for (std::map<int, std::vector<std::string> >::const_iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		int client_fd = *it;
+		int client_fd = it->first;
 		std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 		if (client_it != _clients.end())
 		{
