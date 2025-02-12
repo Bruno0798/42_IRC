@@ -37,6 +37,7 @@ class Server
 		void handlePass(int client_fd, const std::string& message);
 		void handleUser(int client_fd, const std::string& message);
 		void parseClientInfo(Client &user, int client_fd);
+		int getClientFdByName(const std::string& nickname);
 
 		//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
