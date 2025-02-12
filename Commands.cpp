@@ -9,6 +9,8 @@ void Server::handleCommand(const std::string& command, int client_fd)
 	std::string cmd;
 	iss >> cmd;
 
+	_clientFd = client_fd;
+
 	if (cmd == "PING")
 		handlePing(client_fd, command);
 	else if (cmd == "JOIN")
@@ -116,6 +118,8 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		response = ":42 353 " + client_it->getNickname() + " = " + channel_name + " :@" + client_it->getNickname() + "\r\n"; //TODO:After the @ list the members of the channel
 		send(client_fd, response.c_str(), response.size(), 0);
 		std::cout << response << std::endl;
+
+		//makeUserList(channel_name);
 	}
 
 }

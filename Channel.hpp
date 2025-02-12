@@ -27,6 +27,7 @@ class Channel
 		const std::string& getTopic();
 		const std::map<int, std::vector<std::string> >& getClients() const;
 		void	removeClient(int client_fd);
+		
 
 
 };
