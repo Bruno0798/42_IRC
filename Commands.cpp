@@ -115,6 +115,15 @@ void Server::handleNick(int client_fd, const std::string& message)
 	}
 }
 
+int Server::getClientFdByName(const std::string& nickname) {
+	for (std::vector<Client>::iterator clientIt = _clients.begin(); clientIt != _clients.end(); ++clientIt) {
+		if (clientIt->getNickname() == nickname) {
+			return clientIt->getFd();
+		}
+	}
+	throw std::runtime_error("Client not found");
+}
+
 void Server::handlePrivmsg(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
@@ -153,7 +162,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	else
 	{
 		// Target is a user
-		std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+		std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(getClientFdByName(target)));
 		if (target_it != _clients.end())
 			send(target_it->getFd(), response.c_str(), response.size(), 0);
 		else
