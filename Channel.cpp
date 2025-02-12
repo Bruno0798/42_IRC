@@ -37,5 +37,11 @@ const std::map<int, std::vector<std::string> >& Channel::getClients() const
 
 void	Channel::removeClient(int client_fd)
 {	
-	
+	std::map<int, std::vector<std::string> >::iterator it = _clients.find(client_fd);
+    
+    if (it != _clients.end())
+    {
+        _clients.erase(it);
+        std::cout << "Client " << client_fd << " removed from channel " << _name << std::endl;
+    }
 }

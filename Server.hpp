@@ -33,10 +33,16 @@ class Server
 		void handlePrivmsg(int client_fd, const std::string& message);
 		void parseClientInfo(const std::string& buffer, int client_fd);
 
-		void	makeUserList(std::string channel);
-		void	broadcastMessageToChannel(const std::string& message, std::string channel);
+		//------------- Diogo ----------------
+		void							makeUserList(std::string channel);
+		void							broadcastMessageToChannel(const std::string& message, std::string channel);
 		std::vector<Client>::iterator	getClient(int clientFd);
+		void							checkCommandPart(std::istringstream &lineStream);
+		void							commandPart(std::string &channelName);
+		bool							LookClientInChannel(std::string channel);
 
+
+		//-------------------------------------
 
 		class ClientFdMatcher {
 		public:
