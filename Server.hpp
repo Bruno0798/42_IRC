@@ -7,38 +7,52 @@
 
 class Server
 {
-private:
-	struct addrinfo _address;
-	struct addrinfo *_servinfo;
-	int _port;
-	int _fd;
-	std::string _password;
-	std::vector<Client> _clients;
-	std::map<std::string, Channel> _channels;
-public:
-	Server();
-	Server(int _port, std::string& password);
-	~Server();
+	private:
+		struct addrinfo _address;
+		struct addrinfo *_servinfo;
+		int _port;
+		int _fd;
+		int _clientFd;
+		std::string _password;
+		std::vector<Client> _clients;
+		std::map<std::string, Channel> _channels;
 
-	void setAddress();
-	bool fillServerInfo(char *port);
-	bool initServer();
-	void runServer();
-	void handleCommand(Client &user, int client_fd);
-	void handlePing(int client_fd, const std::string& message);
-	void handleJoin(int client_fd, const std::string& message);
-	void handleWho(int client_fd, const std::string& message);
-	void handlePrivmsg(int client_fd, const std::string& message);
-	void handleNick(int client_fd, const std::string& message);
-	void handlePass(int client_fd, const std::string& message);
-	void handleUser(int client_fd, const std::string& message);
-	void parseClientInfo(Client &user, int client_fd);
+	public:
+		Server();
+		Server(int _port, std::string& password);
+		~Server();
 
+		void setAddress();
+		bool fillServerInfo(char *port);
+		bool initServer();
+		void runServer();
+		void handleCommand(const std::string& command, int client_fd);
+		void handlePing(int client_fd, const std::string& message);
+		void handleJoin(int client_fd, const std::string& message);
+		void handleWho(int client_fd, const std::string& message);
+		void handlePrivmsg(int client_fd, const std::string& message);
+		void parseClientInfo(const std::string& buffer, int client_fd);
+		void handleCommand(Client &user, int client_fd);
+		void handleNick(int client_fd, const std::string& message);
+		void handlePass(int client_fd, const std::string& message);
+		void handleUser(int client_fd, const std::string& message);
+		void parseClientInfo(Client &user, int client_fd);
+
+		//------------- Diogo ----------------
+		void							makeUserList(std::string channel);
+		void							broadcastMessageToChannel(const std::string& message, std::string channel);
+		std::vector<Client>::iterator	getClient(int clientFd);
+		void							checkCommandPart(std::istringstream &lineStream);
+		void							commandPart(std::string &channelName);
+		bool							LookClientInChannel(std::string channel);
+
+
+		//-------------------------------------
 		void welcome_messages(Client &user);
 
-	class ClientFdMatcher {
-	public:
-		ClientFdMatcher(int fd) : _fd(fd) {}
+		class ClientFdMatcher {
+		public:
+			ClientFdMatcher(int fd) : _fd(fd) {}
 
 		bool operator()(const Client& client) const {
 			return client.getFd() == _fd;
@@ -46,7 +60,6 @@ public:
 	private:
 		int _fd;
 	};
-
 };
 
 #endif

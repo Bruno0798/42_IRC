@@ -1,9 +1,9 @@
 NAME = ircserv
 
-SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp
+SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp helpFunctions.cpp channelControl.cpp utils.cpp
 OBJ = $(SRC:.cpp=.o)
 
-#CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra
 CFLAGS = -std=c++98
 
 all: $(NAME)
@@ -13,6 +13,10 @@ $(NAME): $(OBJ)
 
 %.o: %.cpp
 	c++ $(CFLAGS) -c $< -o $@
+
+go:
+	make re
+	./ircserv 6667 ola
 
 clean:
 		rm -rf $(OBJ)

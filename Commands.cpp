@@ -9,12 +9,17 @@ void Server::handleCommand(Client& user, int client_fd)
 	std::string cmd;
 	iss >> cmd;
 
+	_clientFd = client_fd;
+
 	if (cmd == "PING")
 		handlePing(client_fd, user.getBuffer());
 	else if (cmd == "JOIN")
 		handleJoin(client_fd, user.getBuffer());
-	else if (cmd == "WHO")
-		handleWho(client_fd, user.getBuffer());
+	else if (cmd == "PART")
+		checkCommandPart(iss);
+
+	//else if (cmd == "WHO")
+	//	handleWho(client_fd, command);
 	else if (cmd == "PRIVMSG")
 		handlePrivmsg(client_fd, user.getBuffer());
 	else if (cmd == "NICK")
@@ -123,7 +128,6 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		return;
 	}
 
-
 	// Remove leading colon from the message
 	if (msg[0] == ':')
 	{
@@ -156,7 +160,6 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 			std::cerr << "User not found: " << target << std::endl;
 	}
 }
-
 
 void Server::handlePing(int client_fd, const std::string& message)
 {
@@ -201,11 +204,16 @@ void Server::handleJoin(int client_fd, const std::string& message)
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
 
-		response = ":42 353 " + client_it->getNickname() + " = " + channel_name + " :@" + client_it->getNickname() + "\r\n"; // List the members of the channel
-		send(client_fd, response.c_str(), response.size(), 0);
+		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
+		send(_clientFd, response.c_str(), response.size(), 0);
+
+		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + "Great topic bro!" + "\r\n";
+		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+
+		makeUserList(channel_name);
 	}
+
 }
 
 void Server::handleWho(int client_fd, const std::string& message)
