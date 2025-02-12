@@ -13,8 +13,8 @@ void Server::handleCommand(const std::string& command, int client_fd)
 		handlePing(client_fd, command);
 	else if (cmd == "JOIN")
 		handleJoin(client_fd, command);
-	else if (cmd == "WHO")
-		handleWho(client_fd, command);
+//	else if (cmd == "WHO")
+//		handleWho(client_fd, command);
 	else if (cmd == "PRIVMSG")
 		handlePrivmsg(client_fd, command);
 	else
@@ -109,15 +109,12 @@ void Server::handleJoin(int client_fd, const std::string& message)
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
-		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost ";
-		response += "JOIN " + channel_name + "\r\n";
-		std::cout << response << std::endl;
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
-		response = ":42 353 " + client_it->getNickname() + " = " + channel_name + " :@" + client_it->getNickname() + "\r\n"; //TODO:After the @ list the members of the channel
-		send(client_fd, response.c_str(), response.size(), 0);
-		std::cout << response << std::endl;
-	}
 
+		response = ":42 353 " + client_it->getNickname() + " = " + channel_name + " :@" + client_it->getNickname() + "\r\n"; // List the members of the channel
+		send(client_fd, response.c_str(), response.size(), 0);
+	}
 }
 
 void Server::handleWho(int client_fd, const std::string& message)

@@ -14,6 +14,7 @@ private:
 	std::string _username;
 	std::string _realname;
 	std::string _password;
+	std::string _buffer;
 	int _port;
 	std::set<std::string> _joinedChannels; // Keep track of joined channels
 
@@ -31,7 +32,7 @@ public:
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getRealname() const;
-	char *getBuffer() const;
+	std::string getBuffer() const;
 	bool isRegistered() const;
 
 	// Setters
@@ -41,6 +42,7 @@ public:
 	void setUserName(const std::string username);
 	void setRealName(const std::string realname);
 	void setPassword(const std::string password);
+	void setBuffer(char *buf);
 	void setRegistered(bool registered);
 
 	void authenticate();

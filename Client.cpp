@@ -87,3 +87,12 @@ void Client::authenticate()
 	_authenticated = true;
 
 }
+void Client::setBuffer(char *buf)
+{
+	_buffer = buf;
+}
+
+std::string Client::getBuffer() const
+{
+	return _buffer;
+}

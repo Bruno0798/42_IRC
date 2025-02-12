@@ -70,12 +70,15 @@ void Server::runServer()
 
 	struct pollfd server_pollfd = {_fd, POLLIN, 0};
 	fds.push_back(server_pollfd);
+	char buffer[1024];
+	int bytes_received;
 
-	std::cout << GREEN << "Server is Running..." << WHITE << std::endl;
+	std::cout << "Server is Running..." << std::endl;
 
 	while (true)
 	{
-		if (poll(fds.data(), fds.size(), -1) == -1)
+		int poll_count = poll(fds.data(), fds.size(), -1);
+		if (poll_count == -1)
 		{
 			perror("poll");
 			break;
@@ -83,7 +86,7 @@ void Server::runServer()
 
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
-			if (fds[i].revents & POLLIN) // If the event that occurred is a POLLIN (aka "data is ready to recv() on this socket")
+			if (fds[i].revents & POLLIN)
 			{
 				if (fds[i].fd == _fd) // New connection
 				{
@@ -104,10 +107,10 @@ void Server::runServer()
 					struct pollfd client_pollfd = {client_fd, POLLIN, 0};
 					fds.push_back(client_pollfd);
 				}
-				else // Existing connection
+				else
 				{
-					char buffer[1024];
-					int bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+					Client &user = _clients.at(i - 1);
+					bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 					if (bytes_received <= 0)
 					{
 						if (bytes_received == 0)
@@ -116,16 +119,32 @@ void Server::runServer()
 							perror("recv");
 						close(fds[i].fd);
 						fds.erase(fds.begin() + i);
+						_clients.erase(_clients.begin() + (i - 1));
 						--i;
 					}
 					else
 					{
 						buffer[bytes_received] = '\0';
-						std::cout << "Received: " << buffer << " from fd: " << fds[i].fd << std::endl;
-						parseClientInfo(buffer, fds[i].fd);
-						handleCommand(buffer, fds[i].fd);
+						user.setBuffer(buffer);
+						fds[i].events = POLLOUT;
 					}
 				}
+			}
+			else if (fds[i].revents & POLLOUT)
+			{
+				Client &user = _clients.at(i - 1);
+				std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
+				parseClientInfo(user.getBuffer(), fds[i].fd);
+				handleCommand(user.getBuffer(), fds[i].fd);
+				fds[i].events = POLLIN;
+			}
+			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+			{
+				std::cerr << "Error on fd: " << fds[i].fd << std::endl;
+				close(fds[i].fd);
+				fds.erase(fds.begin() + i);
+				_clients.erase(_clients.begin() + (i - 1));
+				--i;
 			}
 		}
 	}
