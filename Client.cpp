@@ -1,13 +1,13 @@
 #include "Client.hpp"
 
 Client::Client()
-		: _fd(-1), _registered(false)
+		: _fd(-1), _port(), _registered(false), _authenticated(false)
 {
 	std::cout << "Client Default Constructor Called" << std::endl;
 }
 
 Client::Client(int fd)
-		: _fd(fd), _registered(false) // Initialize other members if necessary
+		: _fd(fd), _port(), _registered(false), _authenticated(false) // Initialize other members if necessary
 {
 	std::cout << "Client Constructor with fd Called" << std::endl;
 }
@@ -82,9 +82,11 @@ void Client::setPassword(const std::string password)
 	_password = password;
 }
 
-void Client::authenticate()
+bool Client::authenticate()
 {
-	_authenticated = true;
+	if(_nickname.empty() || _username.empty() || _password.empty())
+		return false;
+	return true;
 
 }
 void Client::setBuffer(char *buf)
@@ -95,4 +97,14 @@ void Client::setBuffer(char *buf)
 std::string Client::getBuffer() const
 {
 	return _buffer;
+}
+
+void Client::setAuth(bool auth)
+{
+	_authenticated = auth;
+}
+
+bool Client::isAuth() const
+{
+	return _authenticated;
 }

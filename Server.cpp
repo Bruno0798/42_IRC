@@ -14,6 +14,8 @@ Server::Server(int port, std::string& password)
 
 Server::~Server() {}
 
+
+
 bool Server::fillServerInfo(char *port)
 {
 	memset(&_address, 0, sizeof(_address));
@@ -134,8 +136,8 @@ void Server::runServer()
 			{
 				Client &user = _clients.at(i - 1);
 				std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
-				parseClientInfo(user.getBuffer(), fds[i].fd);
-				handleCommand(user.getBuffer(), fds[i].fd);
+				parseClientInfo(user, fds[i].fd);
+				handleCommand(user, fds[i].fd);
 				fds[i].events = POLLIN;
 			}
 			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
@@ -150,9 +152,9 @@ void Server::runServer()
 	}
 }
 
-void Server::parseClientInfo(const std::string& buffer, int client_fd)
+void Server::parseClientInfo(Client &user, int client_fd)
 {
-	std::istringstream iss(buffer);
+	std::istringstream iss(user.getBuffer());
 	std::string token;
 	std::string nickname, username, password;
 
@@ -161,17 +163,11 @@ void Server::parseClientInfo(const std::string& buffer, int client_fd)
 	while (iss >> token)
 	{
 		if (token == "PASS")
-		{
 			iss >> password;
-		}
 		else if (token == "NICK")
-		{
 			iss >> nickname;
-		}
 		else if (token == "USER")
-		{
 			iss >> username;
-		}
 	}
 
 	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
@@ -183,9 +179,10 @@ void Server::parseClientInfo(const std::string& buffer, int client_fd)
 		client_it->setNickname(nickname);
 		client_it->setUserName(username);
 		client_it->setPassword(password);
-		if (password == _password)
+		if (password == _password && !user.isAuth())
 		{
-			client_it->authenticate();
+			welcome_messages(user);
+			client_it->setAuth(true);
 			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
 		}
 		else
@@ -197,4 +194,19 @@ void Server::parseClientInfo(const std::string& buffer, int client_fd)
 	{
 		std::cerr << "Client not found for fd: " << client_fd << std::endl;
 	}
+}
+
+void Server::welcome_messages(Client &user)
+{
+	std::string welcome = ":localhost 001 " + user.getNickname() + " :Welcome to the IRC server\r\n";
+	std::string yourHost = ":localhost 002 " + user.getNickname() + " :Your host is localhost, running version 1.0\r\n";
+	std::string created = ":localhost 003 " + user.getNickname() + " :This server was created today\r\n";
+	std::string myInfo = ":localhost 004 " + user.getNickname() + " localhost 1.0 o o\r\n";
+	std::string serverNotice = ":localhost 005 " + user.getNickname() + " :Please note that this server is for testing purposes only\r\n";
+
+	send(user.getFd(), welcome.c_str(), welcome.size(), 0);
+	send(user.getFd(), yourHost.c_str(), yourHost.size(), 0);
+	send(user.getFd(), created.c_str(), created.size(), 0);
+	send(user.getFd(), myInfo.c_str(), myInfo.size(), 0);
+	send(user.getFd(), serverNotice.c_str(), serverNotice.size(), 0);
 }

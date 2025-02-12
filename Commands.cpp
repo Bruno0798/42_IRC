@@ -3,20 +3,22 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void Server::handleCommand(const std::string& command, int client_fd)
+void Server::handleCommand(Client &user, int client_fd)
 {
-	std::istringstream iss(command);
+	std::istringstream iss(user.getBuffer());
 	std::string cmd;
 	iss >> cmd;
 
-	if (cmd == "PING")
-		handlePing(client_fd, command);
-	else if (cmd == "JOIN")
-		handleJoin(client_fd, command);
+	if(!user.isAuth())
+		return;
+	if (cmd =="PING")
+		handlePing(client_fd, user.getBuffer());
+	else if (cmd =="JOIN")
+		handleJoin(client_fd, user.getBuffer());
 //	else if (cmd == "WHO")
 //		handleWho(client_fd, command);
 	else if (cmd == "PRIVMSG")
-		handlePrivmsg(client_fd, command);
+		handlePrivmsg(client_fd, user.getBuffer());
 	else
 		std::cerr << "Unknown command: " << cmd << std::endl;
 }

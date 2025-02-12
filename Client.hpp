@@ -34,6 +34,7 @@ public:
 	std::string getRealname() const;
 	std::string getBuffer() const;
 	bool isRegistered() const;
+	bool isAuth() const;
 
 	// Setters
 	void setFd(int fd);
@@ -44,8 +45,9 @@ public:
 	void setPassword(const std::string password);
 	void setBuffer(char *buf);
 	void setRegistered(bool registered);
+	void setAuth(bool auth);
 
-	void authenticate();
+	bool authenticate();
 
 	void joinChannel(const std::string& channelName) {
 		_joinedChannels.insert(channelName);

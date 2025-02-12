@@ -24,13 +24,14 @@ public:
 	bool fillServerInfo(char *port);
 	bool initServer();
 	void runServer();
-	void handleCommand(const std::string& command, int client_fd);
+	void handleCommand(Client &user, int client_fd);
 	void handlePing(int client_fd, const std::string& message);
 	void handleJoin(int client_fd, const std::string& message);
 	void handleWho(int client_fd, const std::string& message);
 	void handlePrivmsg(int client_fd, const std::string& message);
-	void parseClientInfo(const std::string& buffer, int client_fd);
+	void parseClientInfo(Client &user, int client_fd);
 
+	void welcome_messages(Client &user);
 
 	class ClientFdMatcher {
 	public:
