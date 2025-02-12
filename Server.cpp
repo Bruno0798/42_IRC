@@ -210,3 +210,4 @@ void Server::welcome_messages(Client &user)
 	send(user.getFd(), myInfo.c_str(), myInfo.size(), 0);
 	send(user.getFd(), serverNotice.c_str(), serverNotice.size(), 0);
 }
+

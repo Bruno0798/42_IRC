@@ -29,9 +29,12 @@ public:
 	void handleJoin(int client_fd, const std::string& message);
 	void handleWho(int client_fd, const std::string& message);
 	void handlePrivmsg(int client_fd, const std::string& message);
+	void handleNick(int client_fd, const std::string& message);
+	void handlePass(int client_fd, const std::string& message);
+	void handleUser(int client_fd, const std::string& message);
 	void parseClientInfo(Client &user, int client_fd);
 
-	void welcome_messages(Client &user);
+		void welcome_messages(Client &user);
 
 	class ClientFdMatcher {
 	public:
@@ -40,10 +43,10 @@ public:
 		bool operator()(const Client& client) const {
 			return client.getFd() == _fd;
 		}
-
 	private:
 		int _fd;
 	};
+
 };
 
 #endif
