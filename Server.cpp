@@ -12,8 +12,8 @@ Server::Server() {}
 Server::Server(int port, std::string& password)
 		: _port(port), _password(password) {}
 
-Server::~Server() {}
-
+Server::~Server() {
+}
 
 
 bool Server::fillServerInfo(char *port)
@@ -77,7 +77,7 @@ void Server::runServer()
 
 	std::cout << "Server is Running..." << std::endl;
 
-	while (true)
+	while (!shut_down)
 	{
 		int poll_count = poll(fds.data(), fds.size(), -1);
 		if (poll_count == -1)

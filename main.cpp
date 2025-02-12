@@ -1,6 +1,8 @@
 #include "Irc.hpp"
 #include "Server.hpp"
 
+bool shut_down = false;
+
 int check_args(int argc, char **argv)
 {
 	if (argc != 3)
@@ -26,9 +28,17 @@ int check_args(int argc, char **argv)
 	return num;
 }
 
+void signalHandler(int signum)
+{
+	std::cout << "Interrupt signal (" << signum << ") received.\n";
+	shut_down = true;
+}
 
 int main(int argc, char **argv)
 {
+	// Activate signal handler
+	signal(SIGINT, signalHandler);
+
 	int port = check_args(argc, argv);
 	std::string password(argv[2]); //Converts password to std::string
 

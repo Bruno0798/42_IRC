@@ -5,6 +5,9 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
+
+extern bool	shut_down;
+
 class Server
 {
 	private:

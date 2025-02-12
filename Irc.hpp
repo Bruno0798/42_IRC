@@ -8,6 +8,7 @@
 # include <netdb.h>
 # include <cstring>
 # include <cstdlib>
+#include <csignal>
 # include <iostream>
 # include <vector>
 # include <map>
