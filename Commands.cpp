@@ -11,25 +11,29 @@ void Server::handleCommand(Client& user, int client_fd)
 
 	_clientFd = client_fd;
 
-	if (cmd == "PING")
-		handlePing(client_fd, user.getBuffer());
-	else if (cmd == "JOIN")
-		handleJoin(client_fd, user.getBuffer());
-	else if (cmd == "PART")
-		checkCommandPart(iss);
+	if (user.isAuth())
+	{
 
-	//else if (cmd == "WHO")
-	//	handleWho(client_fd, command);
-	else if (cmd == "PRIVMSG")
-		handlePrivmsg(client_fd, user.getBuffer());
-	else if (cmd == "NICK")
-		handleNick(client_fd, user.getBuffer());
-	else if (cmd == "PASS")
-		handlePass(client_fd, user.getBuffer());
-	else if (cmd == "USER")
-		handleUser(client_fd, user.getBuffer());
-	else
-		std::cerr << "Unknown command: " << cmd << std::endl;
+		if (cmd == "PING")
+			handlePing(client_fd, user.getBuffer());
+		else if (cmd == "JOIN")
+			handleJoin(client_fd, user.getBuffer());
+		else if (cmd =="PART")
+			checkCommandPart(iss);
+
+			//else if (cmd == "WHO")
+			//	handleWho(client_fd, command);
+		else if (cmd =="PRIVMSG")
+			handlePrivmsg(client_fd, user.getBuffer());
+		else if (cmd =="NICK")
+			handleNick(client_fd, user.getBuffer());
+		else if (cmd =="PASS")
+			handlePass(client_fd, user.getBuffer());
+		else if (cmd =="USER")
+			handleUser(client_fd, user.getBuffer());
+		else
+			std::cerr << "Unknown command: " << cmd << std::endl;
+	}
 }
 
 void Server::handleUser(int client_fd, const std::string& message)

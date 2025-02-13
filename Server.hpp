@@ -42,7 +42,13 @@ class Server
 		void parseClientInfo(Client &user, int client_fd);
 		int getClientFdByName(const std::string& nickname);
 
-		//------------- Diogo ----------------
+		void handleNewConnection(std::vector<struct pollfd>& fds);
+		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received);
+		void handleClientData(std::vector<struct pollfd>& fds, size_t i);
+		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
+		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
+
+	//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
 		void							broadcastMessageToChannel(const std::string& message, std::string channel);
 		std::vector<Client>::iterator	getClient(int clientFd);
