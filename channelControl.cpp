@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/12 18:57:20 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/13 16:15:32 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,14 +100,6 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 
 void Server::commandTopic(std::string &channelName, std::string &newTopic)
 {
-	if (newTopic.empty() || newTopic[0] == ' ' )
-	{
-		std::string topic = getChannelTopic(channelName);
-		if (topic.empty())
-			topic = "No topic is set";
-		std::cout << "the topic on " << channelName << " is " << topic << std::endl;
-		return;
-	}
 	
 	if (!LookClientInChannel(channelName))
 	{
@@ -115,8 +107,20 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
+
+	if (newTopic.empty() || newTopic[0] == ' ' )
+	{
+		std::string topic = getChannelTopic(channelName);
+		if (topic.empty())
+			topic = "No topic is set";
+		std::string topicMsg = ":42 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
+		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
+		return ;
+	}
 	
 	newTopic.erase(0,1);
+	if (newTopic[0] == ':')
+		newTopic.erase(0,1);
 	std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
 	broadcastMessageToChannel(topicChange, channelName);
 	changeChannelTopic(channelName, newTopic);
