@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <arpa/inet.h>
+#include <map>
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
@@ -66,6 +67,25 @@ bool Server::initServer()
 	return true;
 }
 
+void Server::removeClientsFromChannels(int clientFd)
+{
+	std::map<std::string, Channel>::iterator channel = _channels.begin();
+	
+	while (channel != _channels.end())
+	{
+		if(LookClientInChannel(channel->first))
+		{
+			std::string leaveMsg = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername() + "@localhost PART " + channel->first + "\r\n";
+			channel->second.removeClient(_clientFd);
+			send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
+			broadcastMessageToChannel(leaveMsg, channel->first);
+
+		}
+		channel++;
+	}
+}
+
+
 void Server::runServer()
 {
 	std::vector<struct pollfd> fds;
@@ -116,9 +136,10 @@ void Server::runServer()
 					if (bytes_received <= 0)
 					{
 						if (bytes_received == 0)
-							std::cout << "Client disconnected: " << fds[i].fd << std::endl;
+							std::cout << "Client disconnected: " << fds[i].fd << std::endl; 
 						else
 							perror("recv");
+						removeClientsFromChannels(fds[i].fd);//TODO remove from channels
 						close(fds[i].fd);
 						fds.erase(fds.begin() + i);
 						_clients.erase(_clients.begin() + (i - 1));

@@ -50,6 +50,7 @@ class Server
 		void							changeChannelTopic(std::string &channel, std::string &newTopic);
 		void							checkCommandTopic(std::istringstream &lineStream);
 		void							commandTopic(std::string &channelName, std::string &newTopic);
+		void							removeClientsFromChannels(int clientFd);
 
 		//-------------------------------------
 		void welcome_messages(Client &user);
