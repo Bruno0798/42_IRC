@@ -17,6 +17,8 @@ void Server::handleCommand(Client& user, int client_fd)
 		handleJoin(client_fd, user.getBuffer());
 	else if (cmd == "PART")
 		checkCommandPart(iss);
+	else if (cmd == "TOPIC")
+		checkCommandTopic(iss);
 
 	//else if (cmd == "WHO")
 	//	handleWho(client_fd, command);
@@ -28,6 +30,12 @@ void Server::handleCommand(Client& user, int client_fd)
 		handlePass(client_fd, user.getBuffer());
 	else if (cmd == "USER")
 		handleUser(client_fd, user.getBuffer());
+	else if (cmd == "MODE")
+		handleMode(client_fd, user.getBuffer());
+	else if (cmd == "KICK")
+		handleKick(client_fd, user.getBuffer());
+	else if (cmd == "INVITE")
+		handleInvite(client_fd, user.getBuffer());
 	else
 		std::cerr << "Unknown command: " << cmd << std::endl;
 }
@@ -200,6 +208,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		Channel new_channel(channel_name);
 		new_channel.addClient(client_fd);
 		_channels[channel_name] = new_channel;
+		_channels[channel_name].setTopic("Great topic bro!" );
 		std::cout << "Created and joined new channel: " << channel_name << std::endl;
 	}
 	else
@@ -217,7 +226,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
 		send(_clientFd, response.c_str(), response.size(), 0);
 
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + "Great topic bro!" + "\r\n";
+		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
 		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
 
 		makeUserList(channel_name);
@@ -259,4 +268,152 @@ void Server::handleWho(int client_fd, const std::string& message)
 	}
 	response += "\r\n";
 	send(client_fd, response.c_str(), response.size(), 0);
+}
+
+void Server::handleKick(int client_fd, const std::string& message)
+{
+    std::istringstream iss(message);
+    std::string cmd, channel, target, reason;
+    iss >> cmd >> channel >> target;
+    std::getline(iss, reason);
+
+    // Basic parameter validation
+    if (channel.empty() || target.empty())
+    {
+        std::string error = ":localhost 461 KICK :Not enough parameters\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    // Find the channel
+    auto channel_it = _channels.find(channel);
+    if (channel_it == _channels.end())
+    {
+        std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    // Find the kicker (operator)
+    auto kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    if (kicker == _clients.end())
+        return;
+
+    // Check if kicker is an operator
+    if (!channel_it->second.isOperator(client_fd))
+    {
+        std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    // Find target user's fd
+    try {
+        int target_fd = getClientFdByName(target);
+        
+        channel_it->second.removeClient(target_fd);
+
+        // Format reason
+        if (reason.empty())
+            reason = " :No reason given";
+        else if (reason[0] == ':')
+            reason = reason.substr(1);
+
+        // Send kick message to channel
+        std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
+                             "@localhost KICK " + channel + " " + target + reason + "\r\n";
+        
+        broadcastMessageToChannel(kick_msg, channel);
+    }
+    catch (const std::runtime_error& e) {
+        std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+    }
+}
+
+void Server::handleMode(int client_fd, const std::string& message)
+{
+    std::istringstream iss(message);
+    std::string cmd, channel, modes, target;
+    iss >> cmd >> channel >> modes;
+
+    // Basic parameter validation
+    if (channel.empty())
+    {
+        std::string error = ":localhost 461 MODE :Not enough parameters\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    // Find the channel
+    auto channel_it = _channels.find(channel);
+    if (channel_it == _channels.end())
+    {
+        std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    // If no modes specified, return current channel modes
+    if (modes.empty())
+    {
+        std::string current_modes = channel_it->second.getModeString();
+        std::string response = ":localhost 324 " + channel + " " + current_modes + "\r\n";
+        send(client_fd, response.c_str(), response.length(), 0);
+        return;
+    }
+
+    // Check if user is an operator
+    if (!channel_it->second.isOperator(client_fd))
+    {
+        std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    bool adding = true;
+    for (size_t i = 0; i < modes.length(); ++i)
+    {
+        if (modes[i] == '+')
+            adding = true;
+        else if (modes[i] == '-')
+            adding = false;
+        else
+        {
+            switch (modes[i])
+            {
+                case 'i': // invite-only
+                    channel_it->second.setInviteOnly(adding);
+                    break;
+                case 't': // topic restriction
+                    channel_it->second.setTopicRestricted(adding);
+                    break;
+                case 'o': // operator status
+                    iss >> target;
+                    if (!target.empty())
+                    {
+                        try {
+                            int target_fd = getClientFdByName(target);
+                            if (adding)
+                                channel_it->second.addOperator(target_fd);
+                            else
+                                channel_it->second.removeOperator(target_fd);
+                        }
+                        catch (const std::runtime_error& e) {
+                            continue;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    // Notify channel members about mode change
+    auto setter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    if (setter != _clients.end())
+    {
+        std::string mode_msg = ":" + setter->getNickname() + "!" + setter->getUsername() + 
+                              "@localhost MODE " + channel + " " + modes + "\r\n";
+        broadcastMessageToChannel(mode_msg, channel);
+    }
 }
