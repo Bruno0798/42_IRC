@@ -34,8 +34,8 @@ void Server::handleCommand(Client& user, int client_fd)
 		handleMode(client_fd, user.getBuffer());
 	else if (cmd == "KICK")
 		handleKick(client_fd, user.getBuffer());
-	else if (cmd == "INVITE")
-		handleInvite(client_fd, user.getBuffer());
+	// else if (cmd == "INVITE")
+	// 	handleInvite(client_fd, user.getBuffer());
 	else
 		std::cerr << "Unknown command: " << cmd << std::endl;
 }
@@ -277,16 +277,14 @@ void Server::handleKick(int client_fd, const std::string& message)
     iss >> cmd >> channel >> target;
     std::getline(iss, reason);
 
-    // Basic parameter validation
     if (channel.empty() || target.empty())
     {
         std::string error = ":localhost 461 KICK :Not enough parameters\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
-
     // Find the channel
-    auto channel_it = _channels.find(channel);
+    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
     if (channel_it == _channels.end())
     {
         std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
@@ -295,7 +293,7 @@ void Server::handleKick(int client_fd, const std::string& message)
     }
 
     // Find the kicker (operator)
-    auto kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+   std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
     if (kicker == _clients.end())
         return;
 
@@ -337,7 +335,6 @@ void Server::handleMode(int client_fd, const std::string& message)
     std::string cmd, channel, modes, target;
     iss >> cmd >> channel >> modes;
 
-    // Basic parameter validation
     if (channel.empty())
     {
         std::string error = ":localhost 461 MODE :Not enough parameters\r\n";
@@ -346,7 +343,7 @@ void Server::handleMode(int client_fd, const std::string& message)
     }
 
     // Find the channel
-    auto channel_it = _channels.find(channel);
+    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
     if (channel_it == _channels.end())
     {
         std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
@@ -363,7 +360,6 @@ void Server::handleMode(int client_fd, const std::string& message)
         return;
     }
 
-    // Check if user is an operator
     if (!channel_it->second.isOperator(client_fd))
     {
         std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
@@ -372,6 +368,10 @@ void Server::handleMode(int client_fd, const std::string& message)
     }
 
     bool adding = true;
+    std::string applied_modes;
+    std::string applied_target;
+    std::string extra_param;
+
     for (size_t i = 0; i < modes.length(); ++i)
     {
         if (modes[i] == '+')
@@ -382,13 +382,15 @@ void Server::handleMode(int client_fd, const std::string& message)
         {
             switch (modes[i])
             {
-                case 'i': // invite-only
+                case 'i': // Invite-only
                     channel_it->second.setInviteOnly(adding);
+                    applied_modes += (adding ? "+i" : "-i");
                     break;
-                case 't': // topic restriction
+                case 't': // Topic restriction
                     channel_it->second.setTopicRestricted(adding);
+                    applied_modes += (adding ? "+t" : "-t");
                     break;
-                case 'o': // operator status
+                case 'o': // Operator status
                     iss >> target;
                     if (!target.empty())
                     {
@@ -398,22 +400,77 @@ void Server::handleMode(int client_fd, const std::string& message)
                                 channel_it->second.addOperator(target_fd);
                             else
                                 channel_it->second.removeOperator(target_fd);
+                            applied_modes += (adding ? "+o" : "-o");
+                            applied_target = target;
                         }
                         catch (const std::runtime_error& e) {
-                            continue;
+                            std::string error = ":localhost 401 " + target + " :No such nick\r\n";
+                            send(client_fd, error.c_str(), error.length(), 0);
+                            return;
                         }
                     }
+                    else
+                    {
+                        std::string error = ":localhost 461 MODE :Missing target for +o/-o\r\n";
+                        send(client_fd, error.c_str(), error.length(), 0);
+                        return;
+                    }
                     break;
+                case 'k': // Channel key (password)
+                    if (adding)
+                    {
+                        iss >> extra_param;
+                        if (extra_param.empty())
+                        {
+                            std::string error = ":localhost 461 MODE :Missing parameter for +k\r\n";
+                            send(client_fd, error.c_str(), error.length(), 0);
+                            return;
+                        }
+                        channel_it->second.setPass(extra_param);
+                    }
+                    else
+                    {
+                        channel_it->second.removePass();
+                    }
+                    applied_modes += (adding ? "+k" : "-k");
+                    break;
+                case 'l': // User limit
+                    if (adding)
+                    {
+                        iss >> extra_param;
+                        if (extra_param.empty() || !std::isdigit(extra_param[0]))
+                        {
+                            std::string error = ":localhost 461 MODE :Invalid parameter for +l\r\n";
+                            send(client_fd, error.c_str(), error.length(), 0);
+                            return;
+                        }
+                        int limit = std::atoi(extra_param.c_str());
+                        channel_it->second.setUserLimit(limit);
+                    }
+                    else
+                    {
+                        channel_it->second.removeUserLimit();
+                    }
+                    applied_modes += (adding ? "+l" : "-l");
+                    if (adding)
+                        applied_target = extra_param;
+                    break;
+                default:
+                    std::string error = ":localhost 501 " + channel + " :Unknown mode character\r\n";
+                    send(client_fd, error.c_str(), error.length(), 0);
+                    return;
             }
         }
     }
 
     // Notify channel members about mode change
-    auto setter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    std::vector<Client>::iterator setter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
     if (setter != _clients.end())
     {
         std::string mode_msg = ":" + setter->getNickname() + "!" + setter->getUsername() + 
-                              "@localhost MODE " + channel + " " + modes + "\r\n";
+                              "@localhost MODE " + channel + " " + applied_modes +
+                              (applied_target.empty() ? "" : " " + applied_target) + "\r\n";
         broadcastMessageToChannel(mode_msg, channel);
     }
 }
+

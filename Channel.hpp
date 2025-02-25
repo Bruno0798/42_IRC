@@ -13,8 +13,7 @@ class Channel
 		std::string _name;
 		std::map<int, std::vector<std::string> > _clients; // Os clientes e as suas permicoes
 		std::string _topic;
-		std::string _pass;
-		bool _priv;                                        // -|
+		std::string _pass;                                     
 		std::vector<int> _allowedClients; // Para ser usado pelos canais privados 
 
 		std::set<int> _operators;
@@ -24,20 +23,20 @@ class Channel
 		bool _hasUserLimit;
 
 	public:
-		Channel() : _priv(false), _inviteOnly(false), _topicRestricted(false), 
+		Channel() : _inviteOnly(false), _topicRestricted(false), 
                    _hasUserLimit(false), _userLimit(0) {}
-		Channel(const std::string& name) : _name(name), _priv(false), _inviteOnly(false),
+		Channel(const std::string& name) : _name(name), _inviteOnly(false),
                 _topicRestricted(false), _hasUserLimit(false), _userLimit(0) {}
 
 		void 								setName(std::string name);
 		void 								setTopic(std::string topic);
-		void								setPrivate();
 		void								setAllowedClient(int clientFd);
+		void								setPass(std::string pass);
+		void								removePass();
 		
 		const std::string& 								getName();
 		const std::string& 								getTopic();
 		const std::map<int, std::vector<std::string> >& getClients() const;
-		bool											getPrivate();
 		const std::vector<int>&							getAllowedClients() const;
 
 		void											removeClient(int client_fd);
@@ -80,7 +79,6 @@ class Channel
             _userLimit = 0;
         }
 
-        // Helper methods
         bool canJoin(int client_fd) const 
         {
             if (_hasUserLimit && _clients.size() >= _userLimit)
@@ -95,14 +93,12 @@ class Channel
             return _clients.find(client_fd) != _clients.end();
         }
 
-        // Method to get channel modes as string
         std::string getModeString() const 
         {
             std::string modes = "+";
             if (_inviteOnly) modes += "i";
             if (_topicRestricted) modes += "t";
             if (_hasUserLimit) modes += "l";
-            if (_priv) modes += "p";
             return modes;
         }
 };
