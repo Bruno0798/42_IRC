@@ -11,6 +11,7 @@ void Server::handleCommand(Client& user, int client_fd)
 
 	_clientFd = client_fd;
 
+
 	if (user.isAuth())
 	{
 
@@ -33,6 +34,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		else
 			std::cerr << "Unknown command: " << cmd << std::endl;
 	}
+
 }
 
 void Server::handleUser(int client_fd, const std::string& message)
@@ -172,6 +174,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 			std::cerr << "User not found: " << target << std::endl;
 	}
 }
+
 
 void Server::handleWho(int client_fd, const std::string& message)
 {

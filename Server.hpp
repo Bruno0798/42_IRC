@@ -58,7 +58,11 @@ class Server
 		void							checkCommandPart(std::istringstream &lineStream);
 		void							commandPart(std::string &channelName);
 		bool							LookClientInChannel(std::string channel);
-
+		std::string						getChannelTopic(std::string channel);
+		void							changeChannelTopic(std::string &channel, std::string &newTopic);
+		void							checkCommandTopic(std::istringstream &lineStream);
+		void							commandTopic(std::string &channelName, std::string &newTopic);
+		void							removeClientsFromChannels(int clientFd);
 
 		//-------------------------------------
 		void welcome_messages(Client &user);

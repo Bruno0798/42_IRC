@@ -45,3 +45,24 @@ void	Channel::removeClient(int client_fd)
         std::cout << "Client " << client_fd << " removed from channel " << _name << std::endl;
     }
 }
+
+
+bool	Channel::getPrivate()
+{
+	return _priv;
+}
+
+const std::vector<int>&		Channel::getAllowedClients() const
+{
+	return _allowedClients;
+}
+
+void	Channel::setPrivate()
+{
+	_priv = true;
+}
+
+void	Channel::setAllowedClient(int clientFd)
+{
+	_allowedClients.push_back(clientFd);
+}

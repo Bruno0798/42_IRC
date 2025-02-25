@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/12 17:26:09 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/13 16:15:32 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,51 +69,59 @@ void Server::commandPart(std::string &channelName)
 }
 
 
-// void Server::checkCommandTopic(std::istringstream &lineStream)
-// {
-// 	std::string channelName;
-// 	std::string newTopic;
+void Server::checkCommandTopic(std::istringstream &lineStream)
+{
+	std::string channelName;
+	std::string newTopic;
 
-// 	lineStream >> channelName;
-// 	lineStream >> newTopic;
-// 	if (channelName.empty())
-// 	{
-// 		std::string errMsg = ":42 461 " + channelName + " :Not enough parameters\r\n";
-// 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-// 		return ;
-// 	}
+	lineStream >> channelName;
+	std::cout << "Channel name::  " << channelName << std::endl;
+	
+	if (channelName.empty() || channelName == "ft_teste")
+	{
+		std::string errMsg = ":42 461 " + channelName + " :Not enough parameters\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return ;
+	}
 
-// 	if (newTopic.empty() || newTopic[0] == ' ' )
-// 	{
-// 		std::string topic = _getChannelTopic(channelName);
-// 		if (topic.empty())
-// 			topic = "No topic is set";
-// 		std::cout << "the topic on " << channelName << " is " << topic << std::endl;
-// 		return;
-// 	}
-// 	//std::getline(lineStream, newTopic);
-// 	commandTopic(channelName, newTopic);
-// }
+	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
+	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
+	{
+		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return ;
+	}
 
-// void Server::commandTopic(std::string &channelName, std::string &newTopic)
-// {
-// 	std::map<std::string, std::vector<Client>>::const_iterator It = _channels.find(channelName);
-// 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
-// 	{
-// 		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
-// 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-// 		return ;
-// 	}
+	std::getline(lineStream >> std::ws, newTopic);
+	
+	std::cout << newTopic << std::endl;
+	commandTopic(channelName, newTopic);
+}
 
-// 	std::vector<Client>::const_iterator client = LookClientInChannel(channelName);
-// 	if (client == std::vector<Server::Client>::const_iterator())
-// 	{
-// 		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
-// 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-// 		return ;
-// 	}
-// 	newTopic.erase(0,1);
-// 	std::string topicChange = ":" + client->_nickName + "!" + client->_userName + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
-// 	broadcastMessageToChannel(topicChange, channelName);
-// 	_changeChannelTopic(channelName, newTopic);
-// }
+void Server::commandTopic(std::string &channelName, std::string &newTopic)
+{
+	
+	if (!LookClientInChannel(channelName))
+	{
+		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return ;
+	}
+
+	if (newTopic.empty() || newTopic[0] == ' ' )
+	{
+		std::string topic = getChannelTopic(channelName);
+		if (topic.empty())
+			topic = "No topic is set";
+		std::string topicMsg = ":42 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
+		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
+		return ;
+	}
+	
+	newTopic.erase(0,1);
+	if (newTopic[0] == ':')
+		newTopic.erase(0,1);
+	std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
+	broadcastMessageToChannel(topicChange, channelName);
+	changeChannelTopic(channelName, newTopic);
+}

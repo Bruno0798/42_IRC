@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <arpa/inet.h>
+#include <map>
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
@@ -66,6 +67,25 @@ bool Server::initServer()
 	return true;
 }
 
+void Server::removeClientsFromChannels(int clientFd)
+{
+	std::map<std::string, Channel>::iterator channel = _channels.begin();
+	
+	while (channel != _channels.end())
+	{
+		if(LookClientInChannel(channel->first))
+		{
+			std::string leaveMsg = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername() + "@localhost PART " + channel->first + "\r\n";
+			channel->second.removeClient(_clientFd);
+			send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
+			broadcastMessageToChannel(leaveMsg, channel->first);
+
+		}
+		channel++;
+	}
+}
+
+
 void Server::runServer()
 {
 	std::vector<struct pollfd> fds;
@@ -92,6 +112,7 @@ void Server::runServer()
 					handleClientData(fds, i);
 			} else if (fds[i].revents & POLLOUT)
 				handleClientWrite(fds, i);
+
 			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 				handleClientError(fds, i);
 		}
