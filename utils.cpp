@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:30:28 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/12 15:41:50 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/12 18:27:58 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,28 +32,28 @@ bool Server::LookClientInChannel(std::string channel)
 	}
 	return false;
 }
-/*
-std::string Ircserv::_getChannelTopic(std::string channel)
+
+std::string Server::getChannelTopic(std::string channel)
 {
-	std::map<std::string, std::string>::const_iterator It = _channelTopics.find(channel);
+	std::map<std::string, Channel>::iterator It = _channels.find(channel);
 	
-	if (It != _channelTopics.end())
+	if (It != _channels.end())
 	{
 		if (It->first == channel)
-			return It->second;
+			return It->second.getTopic();
 	}
-	return NULL;
+	return "";
 }
 
 
-void Ircserv::_changeChannelTopic(std::string &channel, std::string &newTopic)
+void Server::changeChannelTopic(std::string &channel, std::string &newTopic)
 {
-	std::map<std::string, std::string>::iterator It = _channelTopics.find(channel);
+	std::map<std::string, Channel>::iterator It = _channels.find(channel);
 	
-	if (It != _channelTopics.end())
+	if (It != _channels.end())
 	{
 		if (It->first == channel)
-			It->second = newTopic;
+			It->second.setTopic(newTopic);
 	}
 
-}*/
+}

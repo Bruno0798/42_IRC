@@ -17,6 +17,8 @@ void Server::handleCommand(Client& user, int client_fd)
 		handleJoin(client_fd, user.getBuffer());
 	else if (cmd == "PART")
 		checkCommandPart(iss);
+	else if (cmd == "TOPIC")
+		checkCommandTopic(iss);
 
 	//else if (cmd == "WHO")
 	//	handleWho(client_fd, command);
@@ -200,6 +202,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		Channel new_channel(channel_name);
 		new_channel.addClient(client_fd);
 		_channels[channel_name] = new_channel;
+		_channels[channel_name].setTopic("Great topic bro!" );
 		std::cout << "Created and joined new channel: " << channel_name << std::endl;
 	}
 	else
@@ -217,7 +220,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
 		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
 		send(_clientFd, response.c_str(), response.size(), 0);
 
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + "Great topic bro!" + "\r\n";
+		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
 		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
 
 		makeUserList(channel_name);
