@@ -16,11 +16,11 @@ void Server::handleCommand(Client& user, int client_fd)
 		if (cmd == "PING")
 			handlePing(client_fd, user.getBuffer());
 		else if (cmd == "JOIN")
-			handleJoin(client_fd, user.getBuffer());
+            checkCommandJoin(iss);
 		else if (cmd =="PART")
 			checkCommandPart(iss);
 		else if (cmd == "TOPIC")
-		  checkCommandTopic(iss);
+            checkCommandTopic(iss);
 		//else if (cmd == "WHO")
 		//	handleWho(client_fd, command);
 		else if (cmd =="PRIVMSG")

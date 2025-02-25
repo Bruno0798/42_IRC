@@ -36,15 +36,34 @@
  * 	[SERVER]; join channel #foo using key "fubar" and channel #bar using key "foobar".
  */
 
-void Server::handleJoin(int client_fd, const std::string& message)
+void Server::checkCommandJoin(std::istringstream &lineStream)
 {
-	std::istringstream iss(message);
-	std::string cmd, channel_name;
-	iss >> cmd >> channel_name;
+	std::string channels;
+	lineStream >> channels;
 
-	if (channel_name.empty())
+	if (channels.empty())
 	{
-		std::cerr << "JOIN command requires a channel name" << std::endl;
+		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return ;
+	}
+
+	std::stringstream channelStream(channels);
+	std::string channelName;
+	while (std::getline(channelStream, channelName, ','))
+	{
+		if (!channelName.empty())
+			handleJoin(_clientFd, channelName);
+	}
+}
+
+
+void Server::handleJoin(int client_fd, const std::string& channel_name)
+{
+
+	if (channel_name[0] != '#')
+	{
+		std::cerr << "Wrong channel name" << std::endl; //TODO fix msg here
 		return;
 	}
 
@@ -88,6 +107,5 @@ void Server::handleJoin(int client_fd, const std::string& message)
 
 		makeUserList(channel_name);
 	}
-
 }
 

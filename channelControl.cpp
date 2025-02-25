@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/13 16:15:32 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/25 20:30:59 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 
 	std::stringstream channelStream(channels);
 	std::string channelName;
-	int c = 1;
 	while (std::getline(channelStream, channelName, ','))
 	{
 	

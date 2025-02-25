@@ -46,7 +46,7 @@ class Server
 		void handlePass(int client_fd, const std::string& message);
 		void handleUser(int client_fd, const std::string& message);
 		void handlePing(int client_fd, const std::string& message);
-		void handleJoin(int client_fd, const std::string& message);
+		void handleJoin(int client_fd, const std::string& channel_name);
 		void handleWho(int client_fd, const std::string& message);
 		void handlePrivmsg(int client_fd, const std::string& message);
 
@@ -63,6 +63,7 @@ class Server
 		void							checkCommandTopic(std::istringstream &lineStream);
 		void							commandTopic(std::string &channelName, std::string &newTopic);
 		void							removeClientsFromChannels(int clientFd);
+		void							checkCommandJoin(std::istringstream &lineStream);
 
 		//-------------------------------------
 
