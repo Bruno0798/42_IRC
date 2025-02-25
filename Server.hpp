@@ -29,16 +29,7 @@ class Server
 		bool fillServerInfo(char *port);
 		bool initServer();
 		void runServer();
-		void handleCommand(const std::string& command, int client_fd);
-		void handlePing(int client_fd, const std::string& message);
-		void handleJoin(int client_fd, const std::string& message);
-		void handleWho(int client_fd, const std::string& message);
-		void handlePrivmsg(int client_fd, const std::string& message);
 		void parseClientInfo(const std::string& buffer, int client_fd);
-		void handleCommand(Client &user, int client_fd);
-		void handleNick(int client_fd, const std::string& message);
-		void handlePass(int client_fd, const std::string& message);
-		void handleUser(int client_fd, const std::string& message);
 		void parseClientInfo(Client &user, int client_fd);
 		int getClientFdByName(const std::string& nickname);
 
@@ -47,6 +38,18 @@ class Server
 		void handleClientData(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
+
+
+		//------------- COMMANDS --------------- //
+		void handleCommand(Client &user, int client_fd);
+		void handleNick(int client_fd, const std::string& message);
+		void handlePass(int client_fd, const std::string& message);
+		void handleUser(int client_fd, const std::string& message);
+		void handlePing(int client_fd, const std::string& message);
+		void handleJoin(int client_fd, const std::string& message);
+		void handleWho(int client_fd, const std::string& message);
+		void handlePrivmsg(int client_fd, const std::string& message);
+
 
 	//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
@@ -59,7 +62,6 @@ class Server
 
 		//-------------------------------------
 		void welcome_messages(Client &user);
-
 		class ClientFdMatcher {
 		public:
 			ClientFdMatcher(int fd) : _fd(fd) {}

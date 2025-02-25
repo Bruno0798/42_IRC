@@ -56,8 +56,6 @@ int main(int argc, char **argv)
 		std::cerr << "Server initialization failed." << std::endl;
 		exit(1);
 	}
-
 	server.runServer();
-
 	return 0;
 }
