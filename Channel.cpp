@@ -46,23 +46,23 @@ void	Channel::removeClient(int client_fd)
     }
 }
 
-
-bool	Channel::getPrivate()
-{
-	return _priv;
-}
-
 const std::vector<int>&		Channel::getAllowedClients() const
 {
 	return _allowedClients;
-}
-
-void	Channel::setPrivate()
-{
-	_priv = true;
 }
 
 void	Channel::setAllowedClient(int clientFd)
 {
 	_allowedClients.push_back(clientFd);
 }
+
+void Channel::setPass(std::string pass)
+{
+	_pass = pass;
+}
+
+void Channel::removePass()
+{
+	_pass = "";
+}
+

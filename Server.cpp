@@ -110,7 +110,8 @@ void Server::runServer()
 					handleNewConnection(fds);
 				else
 					handleClientData(fds, i);
-			} else if (fds[i].revents & POLLOUT)
+			}
+      else if (fds[i].revents & POLLOUT)
 				handleClientWrite(fds, i);
 
 			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))

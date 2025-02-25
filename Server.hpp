@@ -65,6 +65,14 @@ class Server
 		void							removeClientsFromChannels(int clientFd);
 
 		//-------------------------------------
+
+		// ------------ Biltes ----------------
+		void handleKick(int client_fd, const std::string& message);
+		void handleInvite(int client_fd, const std::string& message);
+		void handleMode(int client_fd, const std::string& message);
+
+
+
 		void welcome_messages(Client &user);
 		class ClientFdMatcher {
 		public:
