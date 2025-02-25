@@ -5,6 +5,9 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
+
+extern bool	shut_down;
+
 class Server
 {
 	private:
@@ -26,20 +29,29 @@ class Server
 		bool fillServerInfo(char *port);
 		bool initServer();
 		void runServer();
-		void handleCommand(const std::string& command, int client_fd);
-		void handlePing(int client_fd, const std::string& message);
-		void handleJoin(int client_fd, const std::string& message);
-		void handleWho(int client_fd, const std::string& message);
-		void handlePrivmsg(int client_fd, const std::string& message);
 		void parseClientInfo(const std::string& buffer, int client_fd);
+		void parseClientInfo(Client &user, int client_fd);
+		int getClientFdByName(const std::string& nickname);
+
+		void handleNewConnection(std::vector<struct pollfd>& fds);
+		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received);
+		void handleClientData(std::vector<struct pollfd>& fds, size_t i);
+		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
+		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
+
+
+		//------------- COMMANDS --------------- //
 		void handleCommand(Client &user, int client_fd);
 		void handleNick(int client_fd, const std::string& message);
 		void handlePass(int client_fd, const std::string& message);
 		void handleUser(int client_fd, const std::string& message);
-		void parseClientInfo(Client &user, int client_fd);
-		int getClientFdByName(const std::string& nickname);
+		void handlePing(int client_fd, const std::string& message);
+		void handleJoin(int client_fd, const std::string& message);
+		void handleWho(int client_fd, const std::string& message);
+		void handlePrivmsg(int client_fd, const std::string& message);
 
-		//------------- Diogo ----------------
+
+	//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
 		void							broadcastMessageToChannel(const std::string& message, std::string channel);
 		std::vector<Client>::iterator	getClient(int clientFd);
@@ -54,7 +66,6 @@ class Server
 
 		//-------------------------------------
 		void welcome_messages(Client &user);
-
 		class ClientFdMatcher {
 		public:
 			ClientFdMatcher(int fd) : _fd(fd) {}

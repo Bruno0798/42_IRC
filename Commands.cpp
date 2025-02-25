@@ -11,27 +11,30 @@ void Server::handleCommand(Client& user, int client_fd)
 
 	_clientFd = client_fd;
 
-	if (cmd == "PING")
-		handlePing(client_fd, user.getBuffer());
-	else if (cmd == "JOIN")
-		handleJoin(client_fd, user.getBuffer());
-	else if (cmd == "PART")
-		checkCommandPart(iss);
-	else if (cmd == "TOPIC")
-		checkCommandTopic(iss);
 
-	//else if (cmd == "WHO")
-	//	handleWho(client_fd, command);
-	else if (cmd == "PRIVMSG")
-		handlePrivmsg(client_fd, user.getBuffer());
-	else if (cmd == "NICK")
-		handleNick(client_fd, user.getBuffer());
-	else if (cmd == "PASS")
-		handlePass(client_fd, user.getBuffer());
-	else if (cmd == "USER")
-		handleUser(client_fd, user.getBuffer());
-	else
-		std::cerr << "Unknown command: " << cmd << std::endl;
+	if (user.isAuth())
+	{
+
+		if (cmd == "PING")
+			handlePing(client_fd, user.getBuffer());
+		else if (cmd == "JOIN")
+			handleJoin(client_fd, user.getBuffer());
+		else if (cmd =="PART")
+			checkCommandPart(iss);
+		//else if (cmd == "WHO")
+		//	handleWho(client_fd, command);
+		else if (cmd =="PRIVMSG")
+			handlePrivmsg(client_fd, user.getBuffer());
+		else if (cmd =="NICK")
+			handleNick(client_fd, user.getBuffer());
+		else if (cmd =="PASS")
+			handlePass(client_fd, user.getBuffer());
+		else if (cmd =="USER")
+			handleUser(client_fd, user.getBuffer());
+		else
+			std::cerr << "Unknown command: " << cmd << std::endl;
+	}
+
 }
 
 void Server::handleUser(int client_fd, const std::string& message)
@@ -172,61 +175,6 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	}
 }
 
-void Server::handlePing(int client_fd, const std::string& message)
-{
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost ";
-		response += "PONG localhost " + message.substr(5) + "\r\n"; // Assuming message is "PING <data>"
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-}
-
-void Server::handleJoin(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, channel_name;
-	iss >> cmd >> channel_name;
-
-	if (channel_name.empty())
-	{
-		std::cerr << "JOIN command requires a channel name" << std::endl;
-		return;
-	}
-
-	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	if (it == _channels.end())
-	{
-		// Create a new channel if it doesn't exist
-		Channel new_channel(channel_name);
-		new_channel.addClient(client_fd);
-		_channels[channel_name] = new_channel;
-		_channels[channel_name].setTopic("Great topic bro!" );
-		std::cout << "Created and joined new channel: " << channel_name << std::endl;
-	}
-	else
-	{
-		// Add client to existing channel
-		it->second.addClient(client_fd);
-		std::cout << "Joined existing channel: " << channel_name << std::endl;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
-
-		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
-		send(_clientFd, response.c_str(), response.size(), 0);
-
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
-		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
-
-		makeUserList(channel_name);
-	}
-
-}
 
 void Server::handleWho(int client_fd, const std::string& message)
 {
