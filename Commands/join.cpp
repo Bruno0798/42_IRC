@@ -49,6 +49,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
 	}
 
 	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (it == _channels.end())
 	{
 		// Create a new channel if it doesn't exist
@@ -62,11 +63,19 @@ void Server::handleJoin(int client_fd, const std::string& message)
 	else
 	{
 		// Add client to existing channel
-		it->second.addClient(client_fd);
-		std::cout << "Joined existing channel: " << channel_name << std::endl;
+		if (it->second.canJoin(_clientFd))
+		{
+			it->second.addClient(client_fd);
+			std::cout << "Joined existing channel: " << channel_name << std::endl;
+		}
+		else 
+		{
+			std::string errorMsg = ":42 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (+i)\r\n";
+			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
+		}
+
 	}
 
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
