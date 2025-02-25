@@ -33,6 +33,7 @@ class Channel
 		void								setAllowedClient(int clientFd);
 		void								setPass(std::string pass);
 		void								removePass();
+
 		
 		const std::string& 								getName();
 		const std::string& 								getTopic();

@@ -65,3 +65,4 @@ void Channel::removePass()
 {
 	_pass = "";
 }
+
