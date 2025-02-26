@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/26 11:24:34 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/26 11:45:33 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,8 +77,7 @@ void Server::commandPart(std::string &channelName, const std::string &msg)
 
 void Server::checkCommandTopic(std::istringstream &lineStream)
 {
-	std::string channelName;
-	std::string newTopic;
+	std::string channelName, newTopic;
 
 	lineStream >> channelName;
 	if (channelName.empty() || channelName == "ft_teste")

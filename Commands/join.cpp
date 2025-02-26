@@ -99,13 +99,9 @@ void Server::handleJoin(int client_fd, const std::string& channel_name)
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
-
-		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
 		send(_clientFd, response.c_str(), response.size(), 0);
-
 		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
 		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
-
 		makeUserList(channel_name);
 	}
 }
