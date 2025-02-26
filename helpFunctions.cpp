@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/02/25 16:33:48 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/02/26 10:16:43 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 {
 	std::map<std::string, Channel >::const_iterator channelIt = _channels.find(channel);
 
-	if(channelIt != _channels.end())
+	if (channelIt != _channels.end())
 	{
 		Channel channel = channelIt->second;
 		std::map<int, std::vector<std::string> > clients = channel.getClients();

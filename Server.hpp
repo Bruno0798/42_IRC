@@ -56,7 +56,7 @@ class Server
 		void							broadcastMessageToChannel(const std::string& message, std::string channel);
 		std::vector<Client>::iterator	getClient(int clientFd);
 		void							checkCommandPart(std::istringstream &lineStream);
-		void							commandPart(std::string &channelName);
+		void							commandPart(std::string &channelName, const std::string &msg);
 		bool							LookClientInChannel(std::string channel);
 		std::string						getChannelTopic(std::string channel);
 		void							changeChannelTopic(std::string &channel, std::string &newTopic);
