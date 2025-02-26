@@ -63,7 +63,8 @@ void Server::handleJoin(int client_fd, const std::string& channel_name)
 
 	if (channel_name[0] != '#')
 	{
-		std::cerr << "Wrong channel name" << std::endl; //TODO fix msg here
+		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return;
 	}
 
