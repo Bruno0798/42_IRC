@@ -22,7 +22,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 	std::string channels, msgs;
 	lineStream >> channels;
 	lineStream >> msgs;
-	std::cout << "aqui bro!!!!!!! "<<msgs << std::endl;
+	std::cout << "aqui bro!!!!!!!! "<<msgs << std::endl;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
