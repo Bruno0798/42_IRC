@@ -208,12 +208,19 @@ void Server::parseClientInfo(Client &user, int client_fd)
 
 	// Find the client and update its information
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end() && !(nickname.empty() || username.empty()))
+	if (client_it != _clients.end())
 	{
-		std::cout << "I'm in" << std::endl;
-		client_it->setNickname(nickname);
-		client_it->setUserName(username);
-		client_it->setPassword(password);
+		if (!nickname.empty())
+			client_it->setNickname(nickname);
+		if (!username.empty())
+			client_it->setUserName(username);
+		if (!password.empty())
+			client_it->setPassword(password);
+
+		std::cout << "Nickname: "<< client_it->getNickname()  << std::endl;
+		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
+		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
+
 		if (password == _password && !user.isAuth())
 		{
 			welcome_messages(user);

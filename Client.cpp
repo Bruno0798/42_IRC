@@ -41,6 +41,12 @@ std::string Client::getRealname() const
 	return _realname;
 }
 
+std::string Client::getPassword() const
+{
+	return _password;
+}
+
+
 bool Client::isRegistered() const
 {
 	return _registered;
