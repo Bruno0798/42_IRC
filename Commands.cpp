@@ -75,31 +75,6 @@ void Server::handleUser(int client_fd, const std::string& message)
 	}
 }
 
-void Server::handlePass(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, password;
-	iss >> cmd >> password;
-
-	if (password.empty())
-	{
-		std::cerr << "PASS command requires a password" << std::endl;
-		return;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setPassword(password);
-		std::string response = ":localhost 001 " + client_it->getNickname() + " :Password set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
-}
-
 void Server::handleNick(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
