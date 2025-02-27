@@ -174,7 +174,8 @@ void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
 	std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
-	parseClientInfo(user, fds[i].fd);
+	if (!user.isAuth())
+		parseClientInfo(user, fds[i].fd);
 	handleCommand(user, fds[i].fd);
 	fds[i].events = POLLIN;
 }

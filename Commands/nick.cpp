@@ -27,7 +27,7 @@
  * 	Numeric Replies:
  *
  * 	ERR_NONICKNAMEGIVEN (431)
- * 	ERR_ERRONEUS NICKNAME (432)
+ * 	ERR_ERRONEUSNICKNAME (432)
  * 	ERR_NICKNAMEINUSE (433)
  * 	ERR_NICKCOLLISION (436)
  *
@@ -68,13 +68,26 @@ void Server::handleNick(int client_fd, const std::string& message)
 
 	if (!isNicknameValid(nickname))
 	{
-		std::cerr << "Nickname contains invalid characters or starts with an invalid character" << std::endl;
+		std::string response = ":localhost 432 " + nickname + " :Erroneous nickname\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
+		// Check if the nickname is already in use
+		for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		{
+			std::cout << "nicknames" << it->getNickname() << std::endl;
+			if (it->getNickname() == nickname)
+			{
+				std::string response = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
+				send(client_fd, response.c_str(), response.size(), 0);
+				return;
+			}
+		}
+
 		client_it->setNickname(nickname);
 		std::string response = ":localhost 001 " + nickname + " :Nickname set to " + nickname + "\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
