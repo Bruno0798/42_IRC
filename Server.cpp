@@ -111,9 +111,8 @@ void Server::runServer()
 				else
 					handleClientData(fds, i);
 			}
-      else if (fds[i].revents & POLLOUT)
+			else if (fds[i].revents & POLLOUT)
 				handleClientWrite(fds, i);
-
 			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 				handleClientError(fds, i);
 		}
@@ -198,11 +197,11 @@ void Server::parseClientInfo(Client &user, int client_fd)
 	while (iss >> token)
 	{
 		if (token == "PASS")
-			iss >> password;
+			handlePass(client_fd, user.getBuffer());
 		else if (token == "NICK")
-			iss >> nickname;
+			handleNick(client_fd, user.getBuffer());
 		else if (token == "USER")
-			iss >> username;
+			handleUser(client_fd, user.getBuffer());
 	}
 
 	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
@@ -222,7 +221,7 @@ void Server::parseClientInfo(Client &user, int client_fd)
 		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
 		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
 
-		if (password == _password && !user.isAuth())
+		if (client_it->getPassword() == _password && !user.isAuth())
 		{
 			welcome_messages(user);
 			client_it->setAuth(true);

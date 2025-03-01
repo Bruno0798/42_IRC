@@ -51,7 +51,8 @@ void Server::handleUser(int client_fd, const std::string& message)
 
 	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
 	{
-		std::cerr << "USER command requires username, hostname, servername, and realname" << std::endl;
+		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
+		send(client_fd, error.c_str(), error.length(), 0);
 		return;
 	}
 
