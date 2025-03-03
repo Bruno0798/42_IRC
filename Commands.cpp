@@ -189,25 +189,22 @@ void Server::handleKick(int client_fd, const std::string& message)
         return;
     }
 
-    // Find the kicker (operator)
-   std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-    if (kicker == _clients.end())
-        return;
+// Check if kicker is an operator
+if (!channel_it->second.isOperator(client_fd))
+{
+    std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
+    send(client_fd, error.c_str(), error.length(), 0);
+    return;
+}
 
-    // Check if kicker is an operator
-    if (!channel_it->second.isOperator(client_fd))
-    {
-        std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
-        send(client_fd, error.c_str(), error.length(), 0);
-        return;
-    }
+// Find the kicker (operator)
+std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+if (kicker == _clients.end())
+    return;
 
     // Find target user's fd
     try {
         int target_fd = getClientFdByName(target);
-        
-        channel_it->second.removeClient(target_fd);
-
         // Format reason
         if (reason.empty())
             reason = " :No reason given";
@@ -216,9 +213,10 @@ void Server::handleKick(int client_fd, const std::string& message)
 
         // Send kick message to channel
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                             "@localhost KICK " + channel + " " + target + reason + "\r\n";
+                             "@localhost KICK " + channel + " " + target + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
+        channel_it->second.removeClient(target_fd);
     }
     catch (const std::runtime_error& e) {
         std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
@@ -420,11 +418,20 @@ void Server::handleInvite(int client_fd, const std::string& message)
         return;
     }
 
+    std::vector<Client>::iterator inviter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    if (inviter == _clients.end())
+    {
+        std::string error = ":localhost 401 " + nickname + " :No such nick\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+    std::string inviter_nickname = inviter->getNickname();
+
     channel.setAllowedClient(target_fd);
 
-    std::string success = ":localhost 341 " + nickname + " " + channel_name + "\r\n";
+    std::string success = ":localhost 341 " + inviter_nickname + " " + nickname + " " + channel_name + "\r\n";
     send(client_fd, success.c_str(), success.length(), 0);
-	
-    std::string invite_msg = ":localhost " + nickname + " :You have been invited to " + channel_name + "\r\n";
+    
+    std::string invite_msg = "You have been invited to " + channel_name + " by " + inviter_nickname + "\r\n";
     send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
 }
