@@ -16,7 +16,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		if (cmd == "PING")
 			handlePing(client_fd, user.getBuffer());
 		else if (cmd == "JOIN")
-			handleJoin(client_fd, user.getBuffer());
+			checkCommandJoin(iss);
 		else if (cmd =="PART")
 			checkCommandPart(iss);
 		else if (cmd == "TOPIC")
@@ -35,8 +35,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			handleMode(client_fd, user.getBuffer());
 		else if (cmd == "KICK")
 			handleKick(client_fd, user.getBuffer());
-		// else if (cmd == "INVITE")
-		// 	handleInvite(client_fd, user.getBuffer());
+		else if (cmd == "INVITE")
+			handleInvite(client_fd, user.getBuffer());
 		else
 			std::cerr << "Unknown command: " << cmd << std::endl;
 	}
@@ -420,3 +420,60 @@ void Server::handleMode(int client_fd, const std::string& message)
     }
 }
 
+void Server::handleInvite(int client_fd, const std::string& message)
+{
+    std::istringstream iss(message);
+    std::string cmd, nickname, channel_name;
+    iss >> cmd >> nickname >> channel_name;
+
+    if (nickname.empty() || channel_name.empty())
+    {
+        std::string error = ":localhost 461 INVITE :Not enough parameters\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel_name);
+    if (channel_it == _channels.end())
+    {
+        std::string error = ":localhost 403 " + channel_name + " :No such channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    Channel &channel = channel_it->second;
+
+    if (!channel.hasClient(client_fd))
+    {
+        std::string error = ":localhost 442 " + channel_name + " :You're not on that channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    if (!channel.isOperator(client_fd))
+    {
+        std::string error = ":localhost 482 " + channel_name + " :You're not channel operator\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    int target_fd;
+    try
+    {
+        target_fd = getClientFdByName(nickname);
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::string error = ":localhost 401 " + nickname + " :No such nick\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    channel.setAllowedClient(target_fd);
+
+    std::string success = ":localhost 341 " + nickname + " " + channel_name + "\r\n";
+    send(client_fd, success.c_str(), success.length(), 0);
+	
+    std::string invite_msg = ":localhost " + nickname + " :You have been invited to " + channel_name + "\r\n";
+    send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
+}

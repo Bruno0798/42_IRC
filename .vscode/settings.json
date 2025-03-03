@@ -12,6 +12,7 @@
 		"cmath": "cpp",
 		"compare": "cpp",
 		"concepts": "cpp",
+		"csignal": "cpp",
 		"cstdarg": "cpp",
 		"cstddef": "cpp",
 		"cstdint": "cpp",

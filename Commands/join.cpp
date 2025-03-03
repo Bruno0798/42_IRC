@@ -36,46 +36,73 @@
  * 	[SERVER]; join channel #foo using key "fubar" and channel #bar using key "foobar".
  */
 
-void Server::handleJoin(int client_fd, const std::string& message)
+void Server::checkCommandJoin(std::istringstream &lineStream)
 {
-	std::istringstream iss(message);
-	std::string cmd, channel_name;
-	iss >> cmd >> channel_name;
+	std::string channels;
+	lineStream >> channels;
 
-	if (channel_name.empty())
+	if (channels.empty())
 	{
-		std::cerr << "JOIN command requires a channel name" << std::endl;
+		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return ;
+	}
+
+	std::stringstream channelStream(channels);
+	std::string channelName;
+	while (std::getline(channelStream, channelName, ','))
+	{
+		if (!channelName.empty())
+			handleJoin(_clientFd, channelName);
+	}
+}
+
+
+void Server::handleJoin(int client_fd, const std::string& channel_name)
+{
+
+	if (channel_name[0] != '#')
+	{
+		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return;
 	}
 
 	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (it == _channels.end())
 	{
 		// Create a new channel if it doesn't exist
 		Channel new_channel(channel_name);
 		new_channel.addClient(client_fd);
 		_channels[channel_name] = new_channel;
+		_channels[channel_name].setTopic("Great topic bro!" );
+		_channels[channel_name].addOperator(_clientFd);
 		std::cout << "Created and joined new channel: " << channel_name << std::endl;
 	}
 	else
 	{
 		// Add client to existing channel
-		it->second.addClient(client_fd);
-		std::cout << "Joined existing channel: " << channel_name << std::endl;
+		if (it->second.canJoin(_clientFd))
+		{
+			it->second.addClient(client_fd);
+			std::cout << "Joined existing channel: " << channel_name << std::endl;
+		}
+		else 
+		{
+			std::string errorMsg = ":42 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (+i)\r\n";
+			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
+		}
+
 	}
 
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
-
-		std::cout << "fd: "<< _clientFd << " | " << response << std::endl;
 		send(_clientFd, response.c_str(), response.size(), 0);
-
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + "Great topic bro!" + "\r\n";
+		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
 		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
-
 		makeUserList(channel_name);
 	}
-
 }
+
