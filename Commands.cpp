@@ -20,7 +20,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		else if (cmd =="PART")
 			checkCommandPart(iss);
 		else if (cmd == "TOPIC")
-		  checkCommandTopic(iss);
+            checkCommandTopic(iss);
 		//else if (cmd == "WHO")
 		//	handleWho(client_fd, command);
 		else if (cmd =="PRIVMSG")
@@ -51,7 +51,8 @@ void Server::handleUser(int client_fd, const std::string& message)
 
 	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
 	{
-		std::cerr << "USER command requires username, hostname, servername, and realname" << std::endl;
+		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
+		send(client_fd, error.c_str(), error.length(), 0);
 		return;
 	}
 
@@ -67,56 +68,6 @@ void Server::handleUser(int client_fd, const std::string& message)
 		client_it->setUserName(username);
 		client_it->setRealName(realname);
 		std::string response = ":localhost 001 " + client_it->getNickname() + " :User information set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
-}
-
-void Server::handlePass(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, password;
-	iss >> cmd >> password;
-
-	if (password.empty())
-	{
-		std::cerr << "PASS command requires a password" << std::endl;
-		return;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setPassword(password);
-		std::string response = ":localhost 001 " + client_it->getNickname() + " :Password set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
-}
-
-void Server::handleNick(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, nickname;
-	iss >> cmd >> nickname;
-
-	if (nickname.empty())
-	{
-		std::cerr << "NICK command requires a nickname" << std::endl;
-		return;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setNickname(nickname);
-		std::string response = ":localhost 001 " + nickname + " :Nickname set to " + nickname + "\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 	}
 	else

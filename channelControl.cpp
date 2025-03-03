@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   channelControl.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
+/*   By: migupere <migupere@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/26 11:45:33 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/03 12:23:55 by migupere         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,8 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 	std::string channels, msgs;
 	lineStream >> channels;
 	lineStream >> msgs;
-	std::cout << "aqui bro!!!!!!! "<<msgs << std::endl;
+	
+	std::cout << "aqui bro!!!!!!!! "<<msgs << std::endl;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";

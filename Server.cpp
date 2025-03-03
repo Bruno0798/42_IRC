@@ -111,9 +111,8 @@ void Server::runServer()
 				else
 					handleClientData(fds, i);
 			}
-      else if (fds[i].revents & POLLOUT)
+			else if (fds[i].revents & POLLOUT)
 				handleClientWrite(fds, i);
-
 			else if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 				handleClientError(fds, i);
 		}
@@ -174,7 +173,8 @@ void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
 	std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
-	parseClientInfo(user, fds[i].fd);
+	if (!user.isAuth())
+		parseClientInfo(user, fds[i].fd);
 	handleCommand(user, fds[i].fd);
 	fds[i].events = POLLIN;
 }
@@ -197,24 +197,31 @@ void Server::parseClientInfo(Client &user, int client_fd)
 	while (iss >> token)
 	{
 		if (token == "PASS")
-			iss >> password;
+			handlePass(client_fd, user.getBuffer());
 		else if (token == "NICK")
-			iss >> nickname;
+			handleNick(client_fd, user.getBuffer());
 		else if (token == "USER")
-			iss >> username;
+			handleUser(client_fd, user.getBuffer());
 	}
 
 	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
 
 	// Find the client and update its information
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end() && !(nickname.empty() || username.empty()))
+	if (client_it != _clients.end())
 	{
-		std::cout << "I'm in" << std::endl;
-		client_it->setNickname(nickname);
-		client_it->setUserName(username);
-		client_it->setPassword(password);
-		if (password == _password && !user.isAuth())
+		if (!nickname.empty())
+			client_it->setNickname(nickname);
+		if (!username.empty())
+			client_it->setUserName(username);
+		if (!password.empty())
+			client_it->setPassword(password);
+
+		std::cout << "Nickname: "<< client_it->getNickname()  << std::endl;
+		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
+		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
+
+		if (client_it->getPassword() == _password && !user.isAuth())
 		{
 			welcome_messages(user);
 			client_it->setAuth(true);

@@ -5,7 +5,7 @@
 /**
  * @brief The JOIN command indicates that the client wants to join the given channel(s),
  * 	each channel using the given key for it. The server receiving the command checks
- * 	whether or not the client can join the given channel, and processes the request.
+ * 	whether the client can join the given channel, and processes the request.
  *
  * 	While a client is joined to a channel, they receive all relevant information about
  * 	that channel including the JOIN, PART, KICK, and MODE messages affecting the channel.

@@ -32,6 +32,7 @@ public:
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getRealname() const;
+	std::string getPassword() const;
 	std::string getBuffer() const;
 	std::string &getAccumulatedBuffer() { return _buffer; }
 	bool isRegistered() const;
