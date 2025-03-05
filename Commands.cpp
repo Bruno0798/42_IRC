@@ -16,7 +16,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		if (cmd == "PING")
 			handlePing(client_fd, user.getBuffer());
 		else if (cmd == "JOIN")
-            checkCommandJoin(iss);
+			checkCommandJoin(iss);
 		else if (cmd =="PART")
 			checkCommandPart(iss);
 		else if (cmd == "TOPIC")
@@ -35,8 +35,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			handleMode(client_fd, user.getBuffer());
 		else if (cmd == "KICK")
 			handleKick(client_fd, user.getBuffer());
-		// else if (cmd == "INVITE")
-		// 	handleInvite(client_fd, user.getBuffer());
+		else if (cmd == "INVITE")
+			handleInvite(client_fd, user.getBuffer());
 		else
 			std::cerr << "Unknown command: " << cmd << std::endl;
 	}
@@ -51,7 +51,8 @@ void Server::handleUser(int client_fd, const std::string& message)
 
 	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
 	{
-		std::cerr << "USER command requires username, hostname, servername, and realname" << std::endl;
+		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
+		send(client_fd, error.c_str(), error.length(), 0);
 		return;
 	}
 
@@ -67,56 +68,6 @@ void Server::handleUser(int client_fd, const std::string& message)
 		client_it->setUserName(username);
 		client_it->setRealName(realname);
 		std::string response = ":localhost 001 " + client_it->getNickname() + " :User information set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
-}
-
-void Server::handlePass(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, password;
-	iss >> cmd >> password;
-
-	if (password.empty())
-	{
-		std::cerr << "PASS command requires a password" << std::endl;
-		return;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setPassword(password);
-		std::string response = ":localhost 001 " + client_it->getNickname() + " :Password set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
-	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
-}
-
-void Server::handleNick(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, nickname;
-	iss >> cmd >> nickname;
-
-	if (nickname.empty())
-	{
-		std::cerr << "NICK command requires a nickname" << std::endl;
-		return;
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setNickname(nickname);
-		std::string response = ":localhost 001 " + nickname + " :Nickname set to " + nickname + "\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 	}
 	else
@@ -238,25 +189,22 @@ void Server::handleKick(int client_fd, const std::string& message)
         return;
     }
 
-    // Find the kicker (operator)
-   std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-    if (kicker == _clients.end())
-        return;
+// Check if kicker is an operator
+if (!channel_it->second.isOperator(client_fd))
+{
+    std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
+    send(client_fd, error.c_str(), error.length(), 0);
+    return;
+}
 
-    // Check if kicker is an operator
-    if (!channel_it->second.isOperator(client_fd))
-    {
-        std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
-        send(client_fd, error.c_str(), error.length(), 0);
-        return;
-    }
+// Find the kicker (operator)
+std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+if (kicker == _clients.end())
+    return;
 
     // Find target user's fd
     try {
         int target_fd = getClientFdByName(target);
-        
-        channel_it->second.removeClient(target_fd);
-
         // Format reason
         if (reason.empty())
             reason = " :No reason given";
@@ -265,9 +213,10 @@ void Server::handleKick(int client_fd, const std::string& message)
 
         // Send kick message to channel
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                             "@localhost KICK " + channel + " " + target + reason + "\r\n";
+                             "@localhost KICK " + channel + " " + target + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
+        channel_it->second.removeClient(target_fd);
     }
     catch (const std::runtime_error& e) {
         std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
@@ -420,3 +369,69 @@ void Server::handleMode(int client_fd, const std::string& message)
     }
 }
 
+void Server::handleInvite(int client_fd, const std::string& message)
+{
+    std::istringstream iss(message);
+    std::string cmd, nickname, channel_name;
+    iss >> cmd >> nickname >> channel_name;
+
+    if (nickname.empty() || channel_name.empty())
+    {
+        std::string error = ":localhost 461 INVITE :Not enough parameters\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel_name);
+    if (channel_it == _channels.end())
+    {
+        std::string error = ":localhost 403 " + channel_name + " :No such channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    Channel &channel = channel_it->second;
+
+    if (!channel.hasClient(client_fd))
+    {
+        std::string error = ":localhost 442 " + channel_name + " :You're not on that channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    if (!channel.isOperator(client_fd))
+    {
+        std::string error = ":localhost 482 " + channel_name + " :You're not channel operator\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    int target_fd;
+    try
+    {
+        target_fd = getClientFdByName(nickname);
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::string error = ":localhost 401 " + nickname + " :No such nick\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    std::vector<Client>::iterator inviter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    if (inviter == _clients.end())
+    {
+        std::string error = ":localhost 401 " + nickname + " :No such nick\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+    std::string inviter_nickname = inviter->getNickname();
+
+    channel.setAllowedClient(target_fd);
+
+    std::string success = ":localhost 341 " + inviter_nickname + " " + nickname + " " + channel_name + "\r\n";
+    send(client_fd, success.c_str(), success.length(), 0);
+    
+    std::string invite_msg = "You have been invited to " + channel_name + " by " + inviter_nickname + "\r\n";
+    send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
+}

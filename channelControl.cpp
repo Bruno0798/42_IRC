@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/05 12:17:21 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/05 16:02:58 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 	std::string channels, msgs;
 	lineStream >> channels;
 	lineStream >> msgs;
-	std::cout << "aqui bro!!!!!!! "<<msgs << std::endl;
+	
+	std::cout << "aqui bro!!!!!!!! "<<msgs << std::endl;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
