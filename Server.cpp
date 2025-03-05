@@ -188,6 +188,7 @@ void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
 	--i;
 }
 
+
 void Server::parseClientInfo(Client &user, int client_fd)
 {
 	std::istringstream iss(user.getBuffer());
@@ -200,15 +201,9 @@ void Server::parseClientInfo(Client &user, int client_fd)
 		{
 			iss >> password;
 			handlePass(client_fd, user.getBuffer());
-		}
-		else if (token == "NICK")
-		{
-			iss >> nickname;
+		if (token == "NICK")
 			handleNick(client_fd, user.getBuffer());
-		}
-		else if (token == "USER")
-		{
-			iss >> username;
+		if (token == "USER")
 			handleUser(client_fd, user.getBuffer());
 		}
 	}
