@@ -92,6 +92,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name)
 		{
 			std::string errorMsg = ":42 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (+i)\r\n";
 			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
+			return ;
 		}
 
 	}

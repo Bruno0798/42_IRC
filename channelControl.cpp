@@ -6,12 +6,13 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/05 11:49:45 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/05 12:17:21 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "Server.hpp"
+#include <cctype>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -38,7 +39,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 			msg.erase(0,1);
 		if (!channelName.empty())
 		{
-			if (!msg.empty()) //TODO fix shit here
+			if (!msg.empty() && std::isprint(msg[1]))
 				commandPart(channelName, msg);
 			else
 				commandPart(channelName, ":Leaving");
