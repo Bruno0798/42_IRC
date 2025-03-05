@@ -197,11 +197,20 @@ void Server::parseClientInfo(Client &user, int client_fd)
 	while (iss >> token)
 	{
 		if (token == "PASS")
+		{
+			iss >> password;
 			handlePass(client_fd, user.getBuffer());
+		}
 		else if (token == "NICK")
+		{
+			iss >> nickname;
 			handleNick(client_fd, user.getBuffer());
+		}
 		else if (token == "USER")
+		{
+			iss >> username;
 			handleUser(client_fd, user.getBuffer());
+		}
 	}
 
 	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
