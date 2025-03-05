@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/02/26 11:45:33 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/05 11:49:45 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 			msg.erase(0,1);
 		if (!channelName.empty())
 		{
-			if (!msg.empty())
+			if (!msg.empty()) //TODO fix shit here
 				commandPart(channelName, msg);
 			else
 				commandPart(channelName, ":Leaving");
