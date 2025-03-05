@@ -201,9 +201,15 @@ void Server::parseClientInfo(Client &user, int client_fd)
 		{
 			iss >> password;
 			handlePass(client_fd, user.getBuffer());
+		}
 		if (token == "NICK")
+		{
+			iss >> nickname;
 			handleNick(client_fd, user.getBuffer());
+		}
 		if (token == "USER")
+		{
+			iss >> username;
 			handleUser(client_fd, user.getBuffer());
 		}
 	}
