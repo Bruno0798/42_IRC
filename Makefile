@@ -33,5 +33,5 @@ leaks: $(NAME)
 ifeq ($(OS), Darwin)
 	leaks -atExit -- ./$(NAME)
 else
-	valgrind --leak-check=full --track-origins=yes ./$(NAME)
+	valgrind --leak-check=full --track-origins=yes ./$(NAME) 6667 ola
 endif
