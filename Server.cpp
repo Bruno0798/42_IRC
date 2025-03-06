@@ -151,7 +151,13 @@ void Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	{
 		Client &user = _clients.at(i - 1);
 		buffer[bytes_received] = '\0';
-		user.setBuffer(buffer);
+		if (checkBuffer(user.getBuffer()) || user.getBuffer().empty())
+			user.setBuffer(buffer);
+		else if (!user.getBuffer().empty())
+		{
+			std::string concatBuffer = user.getBuffer() + buffer;
+			std::cout << concatBuffer << std::endl;
+		}
 		fds[i].events = POLLOUT;
 	}
 }
@@ -168,14 +174,26 @@ void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i
 	--i;
 }
 
+bool Server::checkBuffer(const std::string& buffer)
+{
+	std::cout << buffer.length() << " length" << std::endl;
+	if (buffer.length() >= 2 && buffer.substr(buffer.length() - 2) == "\r\n")
+	{
+		
+		return true;
+	}
+	return false;
+}
+
 
 void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
-	std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
-	if (!user.isAuth())
-		parseClientInfo(user, fds[i].fd);
-	handleCommand(user, fds[i].fd);
+	if (checkBuffer(user.getBuffer()))
+	{
+		std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
+		handleCommand(user, fds[i].fd);
+	}
 	fds[i].events = POLLIN;
 }
 

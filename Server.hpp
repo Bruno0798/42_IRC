@@ -39,6 +39,8 @@ class Server
 		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
 
+		bool checkBuffer(const std::string& buffer);
+
 
 		//------------- COMMANDS --------------- //
 		void handleCommand(Client &user, int client_fd);
