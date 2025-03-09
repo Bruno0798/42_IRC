@@ -79,12 +79,10 @@ void Server::removeClientsFromChannels(int clientFd)
 			channel->second.removeClient(_clientFd);
 			send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
 			broadcastMessageToChannel(leaveMsg, channel->first);
-
 		}
 		channel++;
 	}
 }
-
 
 void Server::runServer()
 {
@@ -101,7 +99,6 @@ void Server::runServer()
 			perror("poll");
 			break;
 		}
-
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
 			if (fds[i].revents & POLLIN)
@@ -109,7 +106,10 @@ void Server::runServer()
 				if (fds[i].fd == _fd)
 					handleNewConnection(fds);
 				else
-					handleClientData(fds, i);
+				{
+					if(!handleClientData(fds, i))
+						continue;
+				}
 			}
 			else if (fds[i].revents & POLLOUT)
 				handleClientWrite(fds, i);
@@ -140,7 +140,7 @@ void Server::handleNewConnection(std::vector<struct pollfd>& fds)
 	fds.push_back(client_pollfd);
 }
 
-void Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
+bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 {
 	char buffer[1024];
 	int bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
@@ -150,16 +150,15 @@ void Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	else
 	{
 		Client &user = _clients.at(i - 1);
-		buffer[bytes_received] = '\0';
-		if (checkBuffer(user.getBuffer()) || user.getBuffer().empty())
-			user.setBuffer(buffer);
-		else if (!user.getBuffer().empty())
+		user.setBuffer(buffer);
+		if(user.getBuffer().find('\n') == std::string::npos)
 		{
-			std::string concatBuffer = user.getBuffer() + buffer;
-			std::cout << concatBuffer << std::endl;
+			std::cout << "DEBUG: NO \\n found" << std::endl;
+			return false;
 		}
-		fds[i].events = POLLOUT;
 	}
+	fds[i].events = POLLOUT;
+	return true;
 }
 
 void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received)
@@ -174,26 +173,10 @@ void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i
 	--i;
 }
 
-bool Server::checkBuffer(const std::string& buffer)
-{
-	std::cout << buffer.length() << " length" << std::endl;
-	if (buffer.length() >= 2 && buffer.substr(buffer.length() - 2) == "\r\n")
-	{
-		
-		return true;
-	}
-	return false;
-}
-
-
 void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
-	if (checkBuffer(user.getBuffer()))
-	{
-		std::cout << "Received: " << user.getBuffer() << " from fd: " << fds[i].fd << std::endl;
-		handleCommand(user, fds[i].fd);
-	}
+	handleCommand(user, fds[i].fd);
 	fds[i].events = POLLIN;
 }
 

@@ -46,6 +46,7 @@ public:
 	void setRealName(const std::string realname);
 	void setPassword(const std::string password);
 	void setBuffer(char *buf);
+	void delete_buffer();
 	void setRegistered(bool registered);
 	void setAuth(bool auth);
 

@@ -16,8 +16,8 @@ $(NAME): $(OBJ)
 %.o: %.cpp
 	c++ $(CFLAGS) -c $< -o $@
 
-go:
-	make re
+go: re
+	clear
 	./ircserv 6667 ola
 
 clean:
@@ -31,7 +31,7 @@ re: fclean all
 # Leaks/Valgrind test target
 leaks: $(NAME)
 ifeq ($(OS), Darwin)
-	leaks -atExit -- ./$(NAME)
+	leaks -atExit -- ./$(NAME) 6667 ola
 else
 	valgrind --leak-check=full --track-origins=yes ./$(NAME) 6667 ola
 endif

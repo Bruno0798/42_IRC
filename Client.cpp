@@ -97,7 +97,12 @@ bool Client::authenticate()
 }
 void Client::setBuffer(char *buf)
 {
-	_buffer = buf;
+	_buffer += buf;
+}
+
+void Client::delete_buffer()
+{
+	_buffer.clear();
 }
 
 std::string Client::getBuffer() const

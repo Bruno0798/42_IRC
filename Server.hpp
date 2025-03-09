@@ -35,7 +35,7 @@ class Server
 
 		void handleNewConnection(std::vector<struct pollfd>& fds);
 		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received);
-		void handleClientData(std::vector<struct pollfd>& fds, size_t i);
+		bool handleClientData(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
 

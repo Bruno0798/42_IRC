@@ -5,41 +5,76 @@
 
 void Server::handleCommand(Client& user, int client_fd)
 {
+	std::cout << "DEBUG: buffer: " << user.getBuffer() << std::endl;
 	std::istringstream iss(user.getBuffer());
 	std::string cmd;
 	iss >> cmd;
 
 	_clientFd = client_fd;
 
-	if (user.isAuth())
+	//TODO:COMMAND QUIT GOES HERE
+	//TODO: what happens if we change the pass after connected successfully
+	if(!user.isAuth())
 	{
-		if (cmd == "PING")
-			handlePing(client_fd, user.getBuffer());
-		else if (cmd == "JOIN")
-			checkCommandJoin(iss);
-		else if (cmd =="PART")
-			checkCommandPart(iss);
-		else if (cmd == "TOPIC")
-            checkCommandTopic(iss);
-		//else if (cmd == "WHO")
-		//	handleWho(client_fd, command);
-		else if (cmd =="PRIVMSG")
-			handlePrivmsg(client_fd, user.getBuffer());
-		else if (cmd =="NICK")
-			handleNick(client_fd, user.getBuffer());
-		else if (cmd =="PASS")
+		if (cmd =="PASS")
 			handlePass(client_fd, user.getBuffer());
-		else if (cmd =="USER")
-			handleUser(client_fd, user.getBuffer());
-		else if (cmd == "MODE")
-			handleMode(client_fd, user.getBuffer());
-		else if (cmd == "KICK")
-			handleKick(client_fd, user.getBuffer());
-		else if (cmd == "INVITE")
-			handleInvite(client_fd, user.getBuffer());
 		else
-			std::cerr << "Unknown command: " << cmd << std::endl;
+			std::cout << "DEBUG: Not Authorized" << std::endl;
+	} else
+	{
+		if(!user.isRegistered())
+		{
+			if (cmd =="NICK")
+				handleNick(client_fd, user.getBuffer());
+			else if (cmd == "USER")
+				handleUser(client_fd, user.getBuffer());
+			else
+			{
+				std::cout << "User is not registered" << std::endl;
+				//TODO: SEND MESSAGE THAT IS NOT REGISTER
+			}
+		}
 	}
+	user.delete_buffer();
+
+//	if (user.isAuth())
+//	{
+//		if (cmd == "PING")
+//			handlePing(client_fd, user.getBuffer());
+//		else if (cmd == "JOIN")
+//			checkCommandJoin(iss);
+//		else if (cmd =="PART")
+//			checkCommandPart(iss);
+//		else if (cmd == "TOPIC")
+//            checkCommandTopic(iss);
+//		//else if (cmd == "WHO")
+//		//	handleWho(client_fd, command);
+//		else if (cmd =="PRIVMSG")
+//			handlePrivmsg(client_fd, user.getBuffer());
+//		else if (cmd =="NICK")
+//			handleNick(client_fd, user.getBuffer());
+//		else if (cmd =="PASS")
+//			handlePass(client_fd, user.getBuffer());
+//		else if (cmd =="USER")
+//			handleUser(client_fd, user.getBuffer());
+//		else if (cmd == "MODE")
+//			handleMode(client_fd, user.getBuffer());
+//		else if (cmd == "KICK")
+//			handleKick(client_fd, user.getBuffer());
+//		else if (cmd == "INVITE")
+//			handleInvite(client_fd, user.getBuffer());
+//		else
+//			std::cerr << "Unknown command: " << cmd << std::endl;
+//	}
+//	else
+//	{
+//		if (cmd == "PING")
+//			handlePing(client_fd, user.getBuffer());
+//		else if (cmd =="NICK")
+//			handleNick(client_fd, user.getBuffer());
+//		else if (cmd =="PASS")
+//			handlePass(client_fd, user.getBuffer());
+//	}
 }
 
 void Server::handleUser(int client_fd, const std::string& message)
