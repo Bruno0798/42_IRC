@@ -3,6 +3,13 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
+void Server::checkRegist(int client_fd)
+{
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if(!client_it->getNickname().empty() && !client_it->getUsername().empty())
+		client_it->setRegistered(true);
+}
+
 void Server::handleCommand(Client& user, int client_fd)
 {
 	std::cout << "DEBUG: buffer: " << user.getBuffer() << std::endl;
@@ -33,6 +40,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			std::cout << "User is not registered" << std::endl;
 			//TODO: SEND MESSAGE THAT IS NOT REGISTER
 		}
+		checkRegist(client_fd);
 	}
 	else
 	{
@@ -42,6 +50,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			handleNick(client_fd, user.getBuffer());
 		else if (cmd == "USER")
 			handleUser(client_fd, user.getBuffer());
+		else if (cmd == "JOIN")
+			checkCommandJoin(iss);
 	}
 	user.delete_buffer();
 

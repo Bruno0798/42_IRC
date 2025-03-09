@@ -40,6 +40,7 @@ class Server
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
 
 		bool checkBuffer(const std::string& buffer);
+		void checkRegist(int client_fd);
 
 
 		//------------- COMMANDS --------------- //
