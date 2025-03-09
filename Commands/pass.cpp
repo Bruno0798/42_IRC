@@ -26,18 +26,24 @@ void Server::handlePass(int client_fd, const std::string& message)
 
 	std::cout << "DEBUG: PASSWORD: " << password << std::endl;
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+
 	if (password.empty())
 	{
 		std::string response = ":localhost 461 " + client_it->getNickname() + ":Not enough parameters\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
+	} else if(client_it->isAuth())
+	{
+		std::string response = ":localhost 462 " + client_it->getNickname() + ":You may not reregister\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
 	}
-	if (client_it != _clients.end())
+	else if (client_it != _clients.end())
 	{
 		if(password == _password)
 		{
 			client_it->setPassword(password);
 			std::cout << "DEBUG: Password correct" << std::endl;
+			client_it->setAuth(true);
 			return ;
 		}
 		std::string response = ":localhost 464 " + client_it->getNickname() + ":Password incorrect\r\n";

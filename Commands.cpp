@@ -20,20 +20,28 @@ void Server::handleCommand(Client& user, int client_fd)
 			handlePass(client_fd, user.getBuffer());
 		else
 			std::cout << "DEBUG: Not Authorized" << std::endl;
-	} else
+	} else if(!user.isRegistered())
 	{
-		if(!user.isRegistered())
+		if (cmd =="PASS")
+			handlePass(client_fd, user.getBuffer());
+		else if (cmd =="NICK")
+			handleNick(client_fd, user.getBuffer());
+		else if (cmd == "USER")
+			handleUser(client_fd, user.getBuffer());
+		else
 		{
-			if (cmd =="NICK")
-				handleNick(client_fd, user.getBuffer());
-			else if (cmd == "USER")
-				handleUser(client_fd, user.getBuffer());
-			else
-			{
-				std::cout << "User is not registered" << std::endl;
-				//TODO: SEND MESSAGE THAT IS NOT REGISTER
-			}
+			std::cout << "User is not registered" << std::endl;
+			//TODO: SEND MESSAGE THAT IS NOT REGISTER
 		}
+	}
+	else
+	{
+		if (cmd =="PASS")
+			handlePass(client_fd, user.getBuffer());
+		if (cmd =="NICK")
+			handleNick(client_fd, user.getBuffer());
+		else if (cmd == "USER")
+			handleUser(client_fd, user.getBuffer());
 	}
 	user.delete_buffer();
 
