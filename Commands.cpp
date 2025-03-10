@@ -20,7 +20,6 @@ void Server::handleCommand(Client& user, int client_fd)
 	_clientFd = client_fd;
 
 	//TODO:COMMAND QUIT GOES HERE
-	//TODO: what happens if we change the pass after connected successfully
 	if(!user.isAuth())
 	{
 		if (cmd =="PASS")
@@ -37,21 +36,24 @@ void Server::handleCommand(Client& user, int client_fd)
 			handleUser(client_fd, user.getBuffer());
 		else
 		{
-			std::cout << "User is not registered" << std::endl;
+//			std::string response = ;
 			//TODO: SEND MESSAGE THAT IS NOT REGISTER
 		}
 		checkRegist(client_fd);
-	}
-	else
+	} else
 	{
 		if (cmd =="PASS")
 			handlePass(client_fd, user.getBuffer());
-		if (cmd =="NICK")
+		else if (cmd =="NICK")
 			handleNick(client_fd, user.getBuffer());
 		else if (cmd == "USER")
 			handleUser(client_fd, user.getBuffer());
 		else if (cmd == "JOIN")
 			checkCommandJoin(iss);
+		else if (cmd == "PING")
+			handlePing(client_fd, user.getBuffer());
+		else if (cmd == "MODE")
+			handleMode(client_fd, user.getBuffer());
 	}
 	user.delete_buffer();
 

@@ -40,15 +40,11 @@ bool isNicknameValid(const std::string& nickname)
 {
 	const std::string invalidChars = " ,*?!@.";
 	if (nickname.empty() || invalidChars.find(nickname[0]) != std::string::npos)
-	{
 		return false;
-	}
 	for (std::string::const_iterator it = nickname.begin(); it != nickname.end(); ++it)
 	{
 		if (invalidChars.find(*it) != std::string::npos)
-		{
 			return false;
-		}
 	}
 	return true;
 }
@@ -56,41 +52,36 @@ bool isNicknameValid(const std::string& nickname)
 void Server::handleNick(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
-	std::string cmd, nickname;
+	std::string cmd, nickname, response;
 	iss >> cmd >> nickname;
 
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (nickname.empty())
 	{
-		std::string response = ":localhost 431 * :No nickname given\r\n";
+		if (client_it->isRegistered())
+			response = ":localhost 431 :No nickname given\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
-
 	if (!isNicknameValid(nickname))
 	{
-		std::string response = ":localhost 432 " + nickname + " :Erroneous nickname\r\n";
+		std::string response = ":localhost 432 " + client_it->getNickname() + " " + nickname +  " :Erroneous nickname\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
 		// Check if the nickname is already in use
 		for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
-			std::cout << "nicknames" << it->getNickname() << std::endl;
 			if (it->getNickname() == nickname)
 			{
-				std::string response = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
+				response = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
 				send(client_fd, response.c_str(), response.size(), 0);
 				return;
 			}
 		}
-
 		client_it->setNickname(nickname);
-		std::string response = ":localhost 001 " + nickname + " :Nickname set to " + nickname + "\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
