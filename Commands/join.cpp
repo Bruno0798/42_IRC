@@ -38,9 +38,9 @@
 
 void Server::checkCommandJoin(std::istringstream &lineStream)
 {
-	std::string channels;
+	std::string channels, lock;
 	lineStream >> channels;
-
+	lineStream >> lock;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
@@ -48,19 +48,32 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 		return ;
 	}
 
-	std::stringstream channelStream(channels);
-	std::string channelName;
+	std::stringstream channelStream(channels), passStream(lock);
+	
+	std::string channelName, pass;
 	while (std::getline(channelStream, channelName, ','))
 	{
+		std::getline(passStream, pass ,',');
+		if (passStream && pass[1] == ':')
+			pass.erase(0,1);
+		
 		if (!channelName.empty())
-			handleJoin(_clientFd, channelName);
+		{
+			if (!pass.empty() && std::isprint(pass[1]))
+				handleJoin(_clientFd, channelName, pass);
+			else
+				handleJoin(_clientFd, channelName, "");
+		}
 	}
 }
 
 
-void Server::handleJoin(int client_fd, const std::string& channel_name)
+void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
 {
 
+	if (!pass.empty())
+		std::cout << pass << std::endl; 
+	
 	if (channel_name[0] != '#')
 	{
 		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";

@@ -49,7 +49,7 @@ class Server
 		void handlePass(int client_fd, const std::string& message);
 		void handleUser(int client_fd, const std::string& message);
 		void handlePing(int client_fd, const std::string& message);
-		void handleJoin(int client_fd, const std::string& channel_name);
+		void handleJoin(int client_fd, const std::string& channel_name, const std::string& pass);
 		void handleWho(int client_fd, const std::string& message);
 		void handlePrivmsg(int client_fd, const std::string& message);
 		void handleRegistration(const std::string& cmd, int client_fd, const std::string& line);
