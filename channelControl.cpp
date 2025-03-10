@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/05 16:02:58 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/10 17:23:49 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 	while (std::getline(channelStream, channelName, ','))
 	{
 		std::getline(msgsStream, msg ,',');
-		if (msg[1] == ':')
+		if (msgsStream && msg[1] == ':')
 			msg.erase(0,1);
 		if (!channelName.empty())
 		{
@@ -122,7 +122,8 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
 	if (!It->second.isTopicRestricted() || It->second.isOperator(_clientFd))
 	{
-		newTopic.erase(0,1);
+		if (newTopic[0] == ':')
+			newTopic.erase(0,1);
 		if (newTopic[0] == ':')
 			newTopic.erase(0,1);
 		std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
