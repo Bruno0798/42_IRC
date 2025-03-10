@@ -48,6 +48,7 @@ void Server::handlePass(int client_fd, const std::string& message)
 		}
 		std::string response = ":localhost 464 " + client_it->getNickname() + ":Password incorrect\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
+		client_it->delete_buffer();
 	}
 	else
 	{

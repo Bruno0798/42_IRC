@@ -150,6 +150,7 @@ bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	else
 	{
 		Client &user = _clients.at(i - 1);
+		buffer[bytes_received] = '\0';
 		user.setBuffer(buffer);
 		if(user.getBuffer().find('\n') == std::string::npos)
 		{
