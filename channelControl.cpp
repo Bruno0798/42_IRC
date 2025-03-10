@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   channelControl.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: migupere <migupere@student.42.fr>          +#+  +:+       +#+        */
+/*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/03 12:23:55 by migupere         ###   ########.fr       */
+/*   Updated: 2025/03/10 17:23:49 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "Server.hpp"
+#include <cctype>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -35,11 +36,11 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 	while (std::getline(channelStream, channelName, ','))
 	{
 		std::getline(msgsStream, msg ,',');
-		if (msg[1] == ':')
+		if (msgsStream && msg[1] == ':')
 			msg.erase(0,1);
 		if (!channelName.empty())
 		{
-			if (!msg.empty())
+			if (!msg.empty() && std::isprint(msg[1]))
 				commandPart(channelName, msg);
 			else
 				commandPart(channelName, ":Leaving");
