@@ -190,61 +190,61 @@ void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
 	--i;
 }
 
-
-void Server::parseClientInfo(Client &user, int client_fd)
-{
-	std::istringstream iss(user.getBuffer());
-	std::string token;
-	std::string nickname, username, password;
-
-	while (iss >> token)
-	{
-		if (token == "PASS")
-		{
-			iss >> password;
-			handlePass(client_fd, user.getBuffer());
-		}
-		if (token == "NICK")
-		{
-			iss >> nickname;
-			handleNick(client_fd, user.getBuffer());
-		}
-		if (token == "USER")
-		{
-			iss >> username;
-			handleUser(client_fd, user.getBuffer());
-		}
-	}
-
-	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
-
-	// Find the client and update its information
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		if (!nickname.empty())
-			client_it->setNickname(nickname);
-		if (!username.empty())
-			client_it->setUserName(username);
-		if (!password.empty())
-			client_it->setPassword(password);
-
-		std::cout << "Nickname: "<< client_it->getNickname()  << std::endl;
-		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
-		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
-
-		if (client_it->getPassword() == _password && !user.isAuth())
-		{
-			welcome_messages(user);
-			client_it->setAuth(true);
-			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
-		}
-		else
-			std::cerr << "Invalid password for fd: " << client_fd << std::endl;
-	}
-	else
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-}
+//
+//void Server::parseClientInfo(Client &user, int client_fd)
+//{
+//	std::istringstream iss(user.getBuffer());
+//	std::string token;
+//	std::string nickname, username, password;
+//
+//	while (iss >> token)
+//	{
+//		if (token == "PASS")
+//		{
+//			iss >> password;
+//			handlePass(client_fd, user.getBuffer());
+//		}
+//		if (token == "NICK")
+//		{
+//			iss >> nickname;
+//			handleNick(client_fd, user.getBuffer());
+//		}
+//		if (token == "USER")
+//		{
+//			iss >> username;
+//			handleUser(client_fd, user.getBuffer());
+//		}
+//	}
+//
+//	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
+//
+//	// Find the client and update its information
+//	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+//	if (client_it != _clients.end())
+//	{
+//		if (!nickname.empty())
+//			client_it->setNickname(nickname);
+//		if (!username.empty())
+//			client_it->setUserName(username);
+//		if (!password.empty())
+//			client_it->setPassword(password);
+//
+//		std::cout << "Nickname: "<< client_it->getNickname()  << std::endl;
+//		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
+//		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
+//
+//		if (client_it->getPassword() == _password && !user.isAuth())
+//		{
+//			welcome_messages(user);
+//			client_it->setAuth(true);
+//			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
+//		}
+//		else
+//			std::cerr << "Invalid password for fd: " << client_fd << std::endl;
+//	}
+//	else
+//		std::cerr << "Client not found for fd: " << client_fd << std::endl;
+//}
 
 void Server::welcome_messages(Client &user)
 {

@@ -12,54 +12,74 @@ void Server::checkRegist(int client_fd)
 
 void Server::handleCommand(Client& user, int client_fd)
 {
-	std::cout << "DEBUG: buffer: " << user.getBuffer() << std::endl;
 	std::istringstream iss(user.getBuffer());
-	std::string cmd;
-	iss >> cmd;
-
+	std::string line, cmds;
+//	iss >> cmd;
 	_clientFd = client_fd;
 
-	//TODO:COMMAND QUIT GOES HERE
-	if(!user.isAuth())
+	while(getline(iss, line))
 	{
-		if (cmd =="PASS")
-			handlePass(client_fd, user.getBuffer());
-		else
+		std::istringstream cmd(line);
+		cmd >> cmds;
+		std::cout << "DEBUG: WHILE LOOP: CMD: " + line << std::endl;
+		std::cout << user.isAuth() << std::endl;
+		std::cout << user.isRegistered() << std::endl;
+		//TODO:COMMAND QUIT GOES HERE
+		if(!user.isAuth())
 		{
-			std::string response = ":localhost 451 :You have not authenticated\r\n";
-			send(client_fd, response.c_str(), response.size(), 0);
-		}
-	} else if(!user.isRegistered())
-	{
-		if (cmd =="PASS")
-			handlePass(client_fd, user.getBuffer());
-		else if (cmd =="NICK")
-			handleNick(client_fd, user.getBuffer());
-		else if (cmd == "USER")
-			handleUser(client_fd, user.getBuffer());
-		else
+			if (cmds == "PASS")
+			{
+				handlePass(client_fd, line);
+			}
+			else
+			{
+				std::string response = ":localhost 451 :You have not authenticated\r\n";
+				send(client_fd, response.c_str(), response.size(), 0);
+			}
+		} else if(!user.isRegistered())
 		{
-//			std::string response = ;
-			//TODO: SEND MESSAGE THAT IS NOT REGISTER
+			if (cmds == "PASS")
+				handlePass(client_fd, line);
+			else if (cmds =="NICK")
+				handleNick(client_fd, line);
+			else if (cmds == "USER")
+				handleUser(client_fd, line);
+//			else
+//			{
+////			std::string response = ;
+//				//TODO: SEND MESSAGE THAT IS NOT REGISTER
+//			}
+			checkRegist(client_fd);
+		} else
+		{
+			if (cmds =="PASS")
+				handlePass(client_fd, line);
+			else if (cmds =="NICK")
+				handleNick(client_fd, line);
+			else if (cmds == "USER")
+				handleUser(client_fd, line);
+			else if (cmds == "JOIN")
+				checkCommandJoin(cmd);
+			else if (cmds == "PING")
+				handlePing(client_fd, line);
+			else if (cmds == "MODE")
+				handleMode(client_fd, line);
+			else if (cmds == "TOPIC")
+				checkCommandTopic(cmd);
+			else if (cmds == "MODE")
+				handleMode(client_fd, line);
+			else if (cmds == "KICK")
+				handleKick(client_fd, line);
+			else if (cmds == "INVITE")
+				handleInvite(client_fd, line);
+			else if (cmds =="PRIVMSG")
+				handlePrivmsg(client_fd, line);
+			else if (cmds =="PART")
+				checkCommandPart(cmd);
 		}
-		checkRegist(client_fd);
-	} else
-	{
-		if (cmd =="PASS")
-			handlePass(client_fd, user.getBuffer());
-		else if (cmd =="NICK")
-			handleNick(client_fd, user.getBuffer());
-		else if (cmd == "USER")
-			handleUser(client_fd, user.getBuffer());
-		else if (cmd == "JOIN")
-			checkCommandJoin(iss);
-		else if (cmd == "PING")
-			handlePing(client_fd, user.getBuffer());
-		else if (cmd == "MODE")
-			handleMode(client_fd, user.getBuffer());
-		else if (cmd == "TOPIC")
-            checkCommandTopic(iss);
+
 	}
+
 	user.delete_buffer();
 
 //	if (user.isAuth())
@@ -78,7 +98,7 @@ void Server::handleCommand(Client& user, int client_fd)
 //			handlePrivmsg(client_fd, user.getBuffer());
 //		else if (cmd =="NICK")
 //			handleNick(client_fd, user.getBuffer());
-//		else if (cmd =="PASS")
+//		else if (cmd =="PASS")`
 //			handlePass(client_fd, user.getBuffer());
 //		else if (cmd =="USER")
 //			handleUser(client_fd, user.getBuffer());
@@ -118,28 +138,25 @@ void Server::handleUser(int client_fd, const std::string& message)
 	iss >> cmd >> username >> hostname >> servername;
 	std::getline(iss, realname);
 
-	realname = trimLeadingSpaces(realname);
-	std::cout << "USERNAME: " + username << std::endl;
-	std::cout << "HOSTNAME: " + hostname << std::endl;
-	std::cout << "SERVERNAME: " + servername << std::endl;
-	std::cout << "REALNAME:" + realname << std::endl;
-
-	if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
+	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
 	{
-		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
-		send(client_fd, error.c_str(), error.length(), 0);
+		std::cerr << "USER command requires username, hostname, servername, and realname" << std::endl;
 		return;
 	}
 
 	// Remove leading colon from the realname
 	if (realname[0] == ':')
+	{
 		realname = realname.substr(1);
+	}
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
 		client_it->setUserName(username);
 		client_it->setRealName(realname);
+		std::string response = ":localhost 001 " + client_it->getNickname() + " :User information set\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
