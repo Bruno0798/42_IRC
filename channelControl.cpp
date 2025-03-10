@@ -121,7 +121,8 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
 	if (!It->second.isTopicRestricted() || It->second.isOperator(_clientFd))
 	{
-		newTopic.erase(0,1);
+		if (newTopic[0] == ':')
+			newTopic.erase(0,1);
 		if (newTopic[0] == ':')
 			newTopic.erase(0,1);
 		std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";

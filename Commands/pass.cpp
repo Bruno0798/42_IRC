@@ -20,11 +20,9 @@
 void Server::handlePass(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
-	std::cout << "DEBUG: MESSAGE" << message << std::endl;
 	std::string cmd, password;
 	iss >> cmd >> password;
 
-	std::cout << "DEBUG: PASSWORD: " << password << std::endl;
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 
 	if (password.empty())
@@ -42,7 +40,6 @@ void Server::handlePass(int client_fd, const std::string& message)
 		if(password == _password)
 		{
 			client_it->setPassword(password);
-			std::cout << "DEBUG: Password correct" << std::endl;
 			client_it->setAuth(true);
 			return ;
 		}

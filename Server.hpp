@@ -52,6 +52,9 @@ class Server
 		void handleJoin(int client_fd, const std::string& channel_name);
 		void handleWho(int client_fd, const std::string& message);
 		void handlePrivmsg(int client_fd, const std::string& message);
+		void handleRegistration(const std::string& cmd, int client_fd, const std::string& line);
+		void handleUserCommand(const std::string& cmd, std::istringstream& cmdStream, int client_fd, const std::string& line);
+
 
 
 	//------------- Diogo ----------------

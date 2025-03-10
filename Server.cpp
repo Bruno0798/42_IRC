@@ -153,10 +153,7 @@ bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 		buffer[bytes_received] = '\0';
 		user.setBuffer(buffer);
 		if(user.getBuffer().find('\n') == std::string::npos)
-		{
-			std::cout << "DEBUG: NO \\n found" << std::endl;
 			return false;
-		}
 	}
 	fds[i].events = POLLOUT;
 	return true;
