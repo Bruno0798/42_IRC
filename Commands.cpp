@@ -102,6 +102,15 @@ void Server::handleCommand(Client& user, int client_fd)
 //	}
 }
 
+std::string trimLeadingSpaces(const std::string& str)
+{
+	size_t start = 0;
+	while (start < str.size() && std::isspace(str[start])) {
+		start++;
+	}
+	return str.substr(start);
+}
+
 void Server::handleUser(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
@@ -109,7 +118,13 @@ void Server::handleUser(int client_fd, const std::string& message)
 	iss >> cmd >> username >> hostname >> servername;
 	std::getline(iss, realname);
 
-	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
+	realname = trimLeadingSpaces(realname);
+	std::cout << "USERNAME: " + username << std::endl;
+	std::cout << "HOSTNAME: " + hostname << std::endl;
+	std::cout << "SERVERNAME: " + servername << std::endl;
+	std::cout << "REALNAME:" + realname << std::endl;
+
+	if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
 	{
 		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
 		send(client_fd, error.c_str(), error.length(), 0);
@@ -118,17 +133,13 @@ void Server::handleUser(int client_fd, const std::string& message)
 
 	// Remove leading colon from the realname
 	if (realname[0] == ':')
-	{
 		realname = realname.substr(1);
-	}
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it != _clients.end())
 	{
 		client_it->setUserName(username);
 		client_it->setRealName(realname);
-		std::string response = ":localhost 001 " + client_it->getNickname() + " :User information set\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
