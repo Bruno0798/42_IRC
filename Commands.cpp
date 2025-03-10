@@ -25,7 +25,10 @@ void Server::handleCommand(Client& user, int client_fd)
 		if (cmd =="PASS")
 			handlePass(client_fd, user.getBuffer());
 		else
-			std::cout << "DEBUG: Not Authorized" << std::endl;
+		{
+			std::string response = ":localhost 451 :You have not authenticated\r\n";
+			send(client_fd, response.c_str(), response.size(), 0);
+		}
 	} else if(!user.isRegistered())
 	{
 		if (cmd =="PASS")
@@ -54,6 +57,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			handlePing(client_fd, user.getBuffer());
 		else if (cmd == "MODE")
 			handleMode(client_fd, user.getBuffer());
+		else if (cmd == "TOPIC")
+            checkCommandTopic(iss);
 	}
 	user.delete_buffer();
 

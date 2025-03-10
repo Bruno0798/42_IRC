@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 {
 	// Activate signal handler
 	signal(SIGINT, signalHandler);
+	signal(SIGQUIT, signalHandler);
 
 	int port = check_args(argc, argv);
 	std::string password(argv[2]); //Converts password to std::string
