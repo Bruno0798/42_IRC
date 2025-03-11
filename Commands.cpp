@@ -26,8 +26,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			;
 		else if(!user.isAuth())
 		{
-			if (cmds == "PASS")
-				handlePass(client_fd, line);
+			if (cmds == "PASS") handlePass(client_fd, line);
 			else
 			{
 				std::string response = ":localhost 451 :You have not authenticated\r\n";
@@ -35,12 +34,9 @@ void Server::handleCommand(Client& user, int client_fd)
 			}
 		} else if(!user.isRegistered())
 		{
-			if (cmds == "PASS")
-				handlePass(client_fd, line);
-			else if (cmds =="NICK")
-				handleNick(client_fd, line);
-			else if (cmds == "USER")
-				handleUser(client_fd, line);
+			if (cmds == "PASS") handlePass(client_fd, line);
+			else if (cmds =="NICK") handleNick(client_fd, line);
+			else if (cmds == "USER") handleUser(client_fd, line);
 			checkRegist(client_fd);
 		} else
 		{
@@ -57,49 +53,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmds =="PART") checkCommandPart(cmd);
 		}
-
 	}
 	user.delete_buffer();
-}
-
-std::string trimLeadingSpaces(const std::string& str)
-{
-	size_t start = 0;
-	while (start < str.size() && std::isspace(str[start])) {
-		start++;
-	}
-	return str.substr(start);
-}
-
-void Server::handleUser(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, username, hostname, servername, realname;
-	iss >> cmd >> username >> hostname >> servername;
-	std::getline(iss, realname);
-	realname = trimLeadingSpaces(realname);
-
-	if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
-	{
-		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
-		send(client_fd, error.c_str(), error.length(), 0);
-		return;
-	}
-
-	// Remove leading colon from the realname
-	if (realname[0] == ':')
-	{
-		realname = realname.substr(1);
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setUserName(username);
-		client_it->setRealName(realname);
-	}
-	else
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
 }
 
 int Server::getClientFdByName(const std::string& nickname) {
