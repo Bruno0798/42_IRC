@@ -367,6 +367,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                             return;
                         }
                         channel_it->second.setPass(extra_param);
+						applied_target = extra_param;
                     }
                     else
                     {

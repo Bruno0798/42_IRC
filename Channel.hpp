@@ -80,13 +80,15 @@ class Channel
             _userLimit = 0;
         }
 
-        bool canJoin(int client_fd) const 
+        int canJoin(int client_fd, const std::string &pass) const 
         {
             if (_hasUserLimit && _clients.size() >= _userLimit)
-                return false;
+                return 471; // ERR_CHANNELISFULL
             if (_inviteOnly && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
-                return false;
-            return true;
+                return 473;// ERR_INVITEONLYCHAN
+			if (!_pass.empty() && _pass != pass && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
+				return 475; // ERR_BADCHANNELKEY
+            return 0;
         }
 
         bool hasClient(int client_fd) const
