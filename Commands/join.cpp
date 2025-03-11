@@ -144,10 +144,9 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 		send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
 		return;
 	}
-
-
 	std::string response = ":StepBro!StepBro@localhost JOIN " + channel_name + "\r\n";
-	send(_clientFd, response.c_str(), response.size(), 0);
+
+	broadcastMessageToChannel(response, channel_name);
 	makeUserList(channel_name);
 
 }

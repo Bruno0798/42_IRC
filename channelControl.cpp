@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/11 16:41:57 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/11 17:10:15 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,6 @@ void Server::checkCommandBot(std::istringstream &lineStream)
 
 }
 
-
 void Server::commandBot(std::string &channelName, const std::string &msg)
 {
 	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
@@ -172,7 +171,7 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	}
 
 	bool inChannel = LookBotInChannel(channelName);
-	if (msg == "join" && !inChannel)
+	if (msg == "join" && !inChannel && It->second.isOperator(_clientFd))
 	{
 		std::cout << "Bot vai dar join "  << std::endl;
 		JoinBot(424242, channelName);
@@ -185,7 +184,7 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-	if (msg == "part")
+	if (msg == "part" && It->second.isOperator(_clientFd))
 	{
 		std::cout << "Bot vai dar part "  << std::endl;
 		PartBot(channelName);
@@ -205,7 +204,7 @@ void Server::PartBot(std::string &channelName)
 		return ;
 	}
 
-	if (!LookClientInChannel(channelName))
+	if (!LookBotInChannel(channelName))
 	{
 		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
@@ -214,9 +213,9 @@ void Server::PartBot(std::string &channelName)
 	std::string msg = "Have a nice day :D";
 	std::string leaveMsg = ":StepBro!StepBro@localhost PART " + channelName + " " + msg +"\r\n";
 	It->second.removeClient(424242);
-	//send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
+	
 	broadcastMessageToChannel(leaveMsg, channelName);
-
+	makeUserList(channelName);
 
 	std::cout << "LEAVE CHANNEL" << channelName <<"\n";
 }
