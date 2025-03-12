@@ -2,7 +2,6 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
-#include "bonus/Bot.hpp"
 
 void Server::checkRegist(int client_fd)
 {
@@ -153,6 +152,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
         {
             if (it->first != client_fd)
                 send(it->first, response.c_str(), response.size(), 0);
+			std::cout << "target:" << it->first << "Bot vai falar: "<< response  << std::endl;
         }
     }
     else

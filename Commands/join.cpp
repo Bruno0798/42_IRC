@@ -119,34 +119,3 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		makeUserList(channel_name);
 	}
 }
-
-void Server::JoinBot(int client_fd, const std::string& channel_name)
-{
-	if (channel_name[0] != '#')
-	{
-		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return;
-	}
-
-	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	//std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-
-	// Add client to existing channel
-	if (it->second.isOperator(_clientFd))
-	{
-		it->second.addClient(client_fd);
-		std::cout << "Bot Joined existing channel: " << channel_name << std::endl;
-	}
-	else 
-	{
-		std::string errorMsg = ":42 482 Bot " + channel_name + " :You're not channel operator\r\n"; 
-		send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
-		return;
-	}
-	std::string response = ":StepBro!StepBro@localhost JOIN " + channel_name + "\r\n";
-
-	makeUserList(channel_name);
-
-}
-

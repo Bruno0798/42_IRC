@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/12 11:43:16 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 13:32:28 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,84 +137,4 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 	}
 }
 
-void Server::checkCommandBot(std::istringstream &lineStream)
-{
-	std::string channel, order;
-	lineStream >> channel;
-	lineStream >> order;
-	
-	std::cout << "aqui bro!!!!!!!! " << std::endl;
-	
-	if (channel.empty())
-	{
-		std::string errMsg = ":ircserver 461 " + channel + " :Not enough parameters\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return ;
-	}
-
-	if (!order.empty())
-	{
-		if (std::isprint(order[1]))
-			commandBot(channel, order);
-	}
-
-}
-
-void Server::commandBot(std::string &channelName, const std::string &msg)
-{
-	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
-	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
-	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return ;
-	}
-
-	bool inChannel = LookBotInChannel(channelName);
-	if (msg == "join" && !inChannel)
-	{
-		std::cout << "Bot vai dar join "  << std::endl;
-		JoinBot(424242, channelName);
-		return;
-	}
-
-	if (!inChannel)
-	{
-		std::string errMsg = ":42 442 " + channelName + " :BOT is not in the channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return ;
-	}
-	if (msg == "part" && It->second.isOperator(_clientFd))
-	{
-		std::cout << "Bot vai dar part "  << std::endl;
-		PartBot(channelName);
-		return;
-	}
-	
-
-}
-
-void Server::PartBot(std::string &channelName)
-{
-	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
-	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
-	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return ;
-	}
-
-	if (!LookBotInChannel(channelName))
-	{
-		std::string errMsg = ":42 442 " + channelName + " :BOT is not in the channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-		return ;
-	}
-	std::string msg = "Have a nice day :D";
-	std::string leaveMsg = ":StepBro!StepBro@localhost PART " + channelName + " " + msg +"\r\n";
-	It->second.removeClient(424242);
-	makeUserList(channelName);
-	
-	std::cout << "BOT LEAVE CHANNEL" << channelName <<"\n";
-}
 

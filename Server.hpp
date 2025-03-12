@@ -76,6 +76,7 @@ class Server
 		bool							LookBotInChannel(std::string channel);
 		void							JoinBot(int client_fd, const std::string& channel_name);
 		void							PartBot(std::string &channelName);
+		void							PrivmsgBot(const std::string& channel, const std::string& msg);
 
 		//-------------------------------------
 
