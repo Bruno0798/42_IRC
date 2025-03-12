@@ -42,6 +42,7 @@ class Channel
 
 		void											removeClient(int client_fd);
 		void											addClient(int client_fd);
+		void								revokePermissions(int client_fd);
 		
 		 bool isOperator(int client_fd) const 
         { 
@@ -106,6 +107,7 @@ class Channel
 			if (_pass.size() > 0) modes += "k";
             return modes;
         }
+
 };
 
 #endif // CHANNEL_HPP

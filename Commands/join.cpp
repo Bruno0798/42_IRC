@@ -38,9 +38,9 @@
 
 void Server::checkCommandJoin(std::istringstream &lineStream)
 {
-	std::string channels;
+	std::string channels, lock;
 	lineStream >> channels;
-
+	lineStream >> lock;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
@@ -48,35 +48,34 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 		return ;
 	}
 
-	std::stringstream channelStream(channels);
-	std::string channelName;
+	std::stringstream channelStream(channels), passStream(lock);
+	
+	std::string channelName, pass;
 	while (std::getline(channelStream, channelName, ','))
 	{
+		std::getline(passStream, pass ,',');
+		if (passStream && pass[1] == ':')
+			pass.erase(0,1);
+		
 		if (!channelName.empty())
-			handleJoin(_clientFd, channelName);
+		{
+			if (!pass.empty() && std::isprint(pass[1]))
+				handleJoin(_clientFd, channelName, pass);
+			else
+				handleJoin(_clientFd, channelName, "");
+		}
 	}
 }
 
 
-void Server::handleJoin(int client_fd, const std::string& message)
-{
-    std::cout << "Received JOIN message: [" << message << "]" << std::endl;
-
-    std::istringstream iss(message);
-    std::string channel_name, password;
-    iss >> channel_name >> password;
-
-	 if (iss >> password) {
-        // A senha foi fornecida no comando JOIN
-        std::cout << "Password provided: " << password << std::endl;
-    }
-
-    if (channel_name.empty() || channel_name[0] != '#')
-    {
-        std::string errMsg = ":ircserver 461 * :Invalid channel name\r\n";
-        send(client_fd, errMsg.c_str(), errMsg.size(), 0);
-        return;
-    }
+void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
+{	
+	if (channel_name[0] != '#')
+	{
+		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		return;
+	}
 
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
@@ -93,7 +92,7 @@ void Server::handleJoin(int client_fd, const std::string& message)
     } 
     else 
     {
-        int join_status = it->second.canJoin(client_fd, password);
+        int join_status = it->second.canJoin(client_fd, pass);
         if (join_status == 471)
 		{
             send(client_fd, (":ircserver 471 " + channel_name + " :Channel is full\r\n").c_str(), 39, 0);

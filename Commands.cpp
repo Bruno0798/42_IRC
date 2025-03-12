@@ -233,34 +233,27 @@ void Server::handleKick(int client_fd, const std::string& message)
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
-
-// Check if kicker is an operator
 if (!channel_it->second.isOperator(client_fd))
 {
     std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
     send(client_fd, error.c_str(), error.length(), 0);
     return;
 }
-
-// Find the kicker (operator)
 std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 if (kicker == _clients.end())
     return;
-
-    // Find target user's fd
     try {
         int target_fd = getClientFdByName(target);
-        // Format reason
         if (reason.empty())
             reason = " :No reason given";
         else if (reason[0] == ':')
             reason = reason.substr(1);
 
-        // Send kick message to channel
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
                              "@localhost KICK " + channel + " " + target + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
+		channel_it->second.revokePermissions(target_fd);
         channel_it->second.removeClient(target_fd);
     }
     catch (const std::runtime_error& e) {
@@ -471,7 +464,15 @@ void Server::handleInvite(int client_fd, const std::string& message)
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
+
     std::string inviter_nickname = inviter->getNickname();
+
+	if (channel.hasClient(target_fd))
+	{
+		std::string error = ":localhost 443 " + inviter_nickname + " " + nickname + " " + channel_name + " :is already on channel\r\n";
+		send(client_fd, error.c_str(), error.length(), 0);
+		return;
+	}
 
     channel.setAllowedClient(target_fd);
 

@@ -66,3 +66,13 @@ void Channel::removePass()
 	_pass = "";
 }
 
+void Channel::revokePermissions(int client_fd)
+{
+	std::set<int>::iterator op_it = std::find(_operators.begin(), _operators.end(), client_fd);
+	if (op_it != _operators.end())
+		_operators.erase(op_it);
+
+	std::vector<int>::iterator invite_it = std::find(_allowedClients.begin(), _allowedClients.end(), client_fd);
+	if (invite_it != _allowedClients.end())
+		_allowedClients.erase(invite_it);
+}
