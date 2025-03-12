@@ -4,6 +4,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <map>
+#include <string>
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
@@ -67,15 +68,17 @@ bool Server::initServer()
 	return true;
 }
 
-void Server::removeClientsFromChannels(int clientFd)
+void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 {
 	std::map<std::string, Channel>::iterator channel = _channels.begin();
-	
+
+	std::cout << "Server is Running..." << std::endl;
+
 	while (channel != _channels.end())
 	{
 		if(LookClientInChannel(channel->first))
 		{
-			std::string leaveMsg = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername() + "@localhost PART " + channel->first + "\r\n";
+			std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
 			channel->second.removeClient(_clientFd);
 			send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
 			broadcastMessageToChannel(leaveMsg, channel->first);
@@ -146,7 +149,7 @@ bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	int bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 
 	if (bytes_received <= 0)
-		handleClientDisconnection(fds, i, bytes_received);
+		handleClientDisconnection(fds, i, bytes_received, "Has left");
 	else
 	{
 		Client &user = _clients.at(i - 1);
@@ -159,12 +162,12 @@ bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	return true;
 }
 
-void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received)
+void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received, const std::string &leaveMsg)
 {
 	if (bytes_received == 0)
 	{
 		//leave all channels
-		removeClientsFromChannels(fds[i].fd);
+		removeClientsFromChannels(fds[i].fd, leaveMsg);
 		std::cout << "Client disconnected: " << fds[i].fd << std::endl;
 	}
 	else
@@ -178,8 +181,17 @@ void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i
 void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
-	handleCommand(user, fds[i].fd);
-	fds[i].events = POLLIN;
+	std::istringstream check(user.getBuffer());
+	std::string cmd, msg;
+	check >> cmd >> msg;
+	if (cmd == "QUIT")
+		commandQuit(fds, i, msg);
+		
+	else
+	{
+		handleCommand(user, fds[i].fd);
+		fds[i].events = POLLIN;
+	}
 }
 
 void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
