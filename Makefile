@@ -1,9 +1,7 @@
 NAME = ircserv
 
 SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp helpFunctions.cpp channelControl.cpp utils.cpp Commands/ping.cpp Commands/join.cpp Commands/pass.cpp
-SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp
-
-
+SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp bonus/Bot.cpp
 OBJ = $(SRC:.cpp=.o)
 
 CFLAGS = -Wall -Werror -Wextra
