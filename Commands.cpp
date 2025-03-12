@@ -57,7 +57,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmds == "INVITE") handleInvite(client_fd, line);
 			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmds =="PART") checkCommandPart(cmd);
-            else if (cmds =="BOT") checkCommandBot(cmd);
+			else if (cmds =="BOT") checkCommandBot(cmd);
 		}
 
 	}

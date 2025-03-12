@@ -140,13 +140,12 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 	}
 	else 
 	{
-		std::string errorMsg = ":42 473 Bot " + channel_name + " :Cannot join channel (Not operator)\r\n";
+		std::string errorMsg = ":42 482 Bot " + channel_name + " :You're not channel operator\r\n"; 
 		send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
 		return;
 	}
 	std::string response = ":StepBro!StepBro@localhost JOIN " + channel_name + "\r\n";
 
-	broadcastMessageToChannel(response, channel_name);
 	makeUserList(channel_name);
 
 }

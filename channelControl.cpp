@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/11 17:10:15 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 11:43:16 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,7 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 	}
 	else
 	{
-		std::string topicMsg = ":42 482 " + getClient(_clientFd)->getNickname() + " " + channelName + " :You're not channel operator\r\n";
+		std::string topicMsg = ":42 482 " + getClient(_clientFd)->getNickname() + " " + channelName + " :You're not channel operator\r\n"; 
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 	}
 }
@@ -171,7 +171,7 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	}
 
 	bool inChannel = LookBotInChannel(channelName);
-	if (msg == "join" && !inChannel && It->second.isOperator(_clientFd))
+	if (msg == "join" && !inChannel)
 	{
 		std::cout << "Bot vai dar join "  << std::endl;
 		JoinBot(424242, channelName);
@@ -206,16 +206,15 @@ void Server::PartBot(std::string &channelName)
 
 	if (!LookBotInChannel(channelName))
 	{
-		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
+		std::string errMsg = ":42 442 " + channelName + " :BOT is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 	std::string msg = "Have a nice day :D";
 	std::string leaveMsg = ":StepBro!StepBro@localhost PART " + channelName + " " + msg +"\r\n";
 	It->second.removeClient(424242);
-	
-	broadcastMessageToChannel(leaveMsg, channelName);
 	makeUserList(channelName);
-
-	std::cout << "LEAVE CHANNEL" << channelName <<"\n";
+	
+	std::cout << "BOT LEAVE CHANNEL" << channelName <<"\n";
 }
+

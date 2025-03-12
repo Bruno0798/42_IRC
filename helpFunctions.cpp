@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/11 16:54:09 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 11:50:36 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,14 +42,13 @@ void Server::makeUserList(std::string channel_name)
 
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
-			if (It->first == 424242)
-			{
-				nameList+= "SetpBro ";
-				continue;
-			}
+			
 			if (channel.isOperator(It->first))
 				nameList += "@";
-			nameList+= getClient(It->first)->getNickname() + " ";
+			if (It->first == 424242)
+				nameList+= "SetpBro ";
+			else
+				nameList+= getClient(It->first)->getNickname() + " ";
 		}
 		nameList += "\r\n";
 
@@ -76,7 +75,8 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
 			int clientFd = It->first;
-			send(clientFd, message.c_str(), message.size(), 0);
+			if (clientFd != 424242)
+				send(clientFd, message.c_str(), message.size(), 0);
 		}
 	}
 	else
