@@ -58,7 +58,7 @@ void Server::handleNick(int client_fd, const std::string& message)
 	std::vector<Client>::iterator	 client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (nickname.empty())
 	{
-		response = ":localhost 431 :No ./. nickname given\r\n";
+		response = ":localhost 431 :No nickname given\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
@@ -83,6 +83,7 @@ void Server::handleNick(int client_fd, const std::string& message)
 				else
 					response = ":localhost 433 " + client_it->getNickname() + " :Nickname is already in use\r\n";
 				send(client_fd, response.c_str(), response.size(), 0);
+				std::cout << " esta em use este NICK" << std::endl;
 				return;
 			}
 		}

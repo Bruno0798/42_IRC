@@ -1,6 +1,7 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
+#include <cctype>
 
 /**
  * @brief The JOIN command indicates that the client wants to join the given channel(s),
@@ -38,9 +39,9 @@
 
 void Server::checkCommandJoin(std::istringstream &lineStream)
 {
-	std::string channels;
+	std::string channels, lock;
 	lineStream >> channels;
-
+	lineStream >> lock;
 	if (channels.empty())
 	{
 		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
@@ -48,19 +49,28 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 		return ;
 	}
 
-	std::stringstream channelStream(channels);
-	std::string channelName;
+	std::stringstream channelStream(channels), passStream(lock);
+	
+	std::string channelName, pass;
 	while (std::getline(channelStream, channelName, ','))
 	{
+		std::getline(passStream, pass ,',');
+		if (passStream && pass[1] == ':')
+			pass.erase(0,1);
+		
 		if (!channelName.empty())
-			handleJoin(_clientFd, channelName);
+		{
+			if (!pass.empty() && std::isprint(pass[1]))
+				handleJoin(_clientFd, channelName, pass);
+			else
+				handleJoin(_clientFd, channelName, "");
+		}
 	}
 }
 
 
-void Server::handleJoin(int client_fd, const std::string& channel_name)
+void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
 {
-
 	if (channel_name[0] != '#')
 	{
 		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
@@ -68,42 +78,60 @@ void Server::handleJoin(int client_fd, const std::string& channel_name)
 		return;
 	}
 
-	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (it == _channels.end())
-	{
-		// Create a new channel if it doesn't exist
-		Channel new_channel(channel_name);
-		new_channel.addClient(client_fd);
-		_channels[channel_name] = new_channel;
-		_channels[channel_name].setTopic("Great topic bro!" );
-		_channels[channel_name].addOperator(_clientFd);
-		std::cout << "Created and joined new channel: " << channel_name << std::endl;
-	}
-	else
-	{
-		// Add client to existing channel
-		if (it->second.canJoin(_clientFd))
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+
+    if (it == _channels.end()) 
+    {
+        // Criar um novo canal se ele não existir
+        Channel new_channel(channel_name);
+        new_channel.addClient(client_fd);
+        _channels[channel_name] = new_channel;
+        _channels[channel_name].setTopic("Great topic bro!");
+        _channels[channel_name].addOperator(client_fd);
+        std::cout << "Created and joined new channel: " << channel_name << std::endl;
+    } 
+    else 
+    {
+        int join_status = it->second.canJoin(client_fd, pass);
+        if (join_status == 471)
 		{
-			it->second.addClient(client_fd);
-			std::cout << "Joined existing channel: " << channel_name << std::endl;
-		}
-		else 
-		{
-			std::string errorMsg = ":42 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (Channel is invite only)\r\n";
-			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
+            send(client_fd, (":ircserver 471 " + channel_name + " :Channel is full\r\n").c_str(), 39, 0);
 			return;
 		}
+        else if (join_status == 473){
+            send(client_fd, (":ircserver 473 " + channel_name + " :Invite only channel\r\n").c_str(), 44, 0);
 
-	}
+			return;
+		}
+        else if (join_status == 475){
+            send(client_fd, (":ircserver 475 " + channel_name + " :Incorrect channel key\r\n").c_str(), 47, 0);
+			return;
+		}
+        else 
+        {
+            it->second.addClient(client_fd);
+            std::cout << "Joined existing channel: " << channel_name << std::endl;
+        }
+    }
 
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
-		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+		
+		if (!std::isprint(getChannelTopic(channel_name)[1]))
+		{
+			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + channel_name + " :No topic is set\r\n";
+			send(_clientFd, msg2.c_str(), msg2.size(), 0);
+		}
+		else
+		{
+			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
+			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+		}
+			
 		makeUserList(channel_name);
 	}
-}
 
+}

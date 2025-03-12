@@ -34,7 +34,7 @@ class Server
 		int getClientFdByName(const std::string& nickname);
 
 		void handleNewConnection(std::vector<struct pollfd>& fds);
-		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received);
+		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received, const std::string &leaveMsg);
 		bool handleClientData(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
@@ -49,7 +49,7 @@ class Server
 		void handlePass(int client_fd, const std::string& message);
 		void handleUser(int client_fd, const std::string& message);
 		void handlePing(int client_fd, const std::string& message);
-		void handleJoin(int client_fd, const std::string& channel_name);
+		void handleJoin(int client_fd, const std::string& channel_name, const std::string& pass);
 		void handleWho(int client_fd, const std::string& message);
 		void handlePrivmsg(int client_fd, const std::string& message);
 		void handleRegistration(const std::string& cmd, int client_fd, const std::string& line);
@@ -68,8 +68,17 @@ class Server
 		void							changeChannelTopic(std::string &channel, std::string &newTopic);
 		void							checkCommandTopic(std::istringstream &lineStream);
 		void							commandTopic(std::string &channelName, std::string &newTopic);
-		void							removeClientsFromChannels(int clientFd);
+		void							removeClientsFromChannels(int clientFd, const std::string &msg);
 		void							checkCommandJoin(std::istringstream &lineStream);
+		void							commandQuit(std::vector<struct pollfd>& fds, size_t i, std::string &msg);
+		
+		void							checkCommandBot(std::istringstream &lineStream);
+		void							commandBot(std::string &channelName, const std::string &msg);
+		bool							LookBotInChannel(std::string channel);
+		void							JoinBot(int client_fd, const std::string& channel_name);
+		void							PartBot(std::string &channelName);
+		void							PrivmsgBot(const std::string& channel, const std::string& msg);
+		std::string						getMsg();
 
 		//-------------------------------------
 
