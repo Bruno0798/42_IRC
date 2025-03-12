@@ -115,9 +115,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         }
     }
 
-
-	}
-
 	if (client_it != _clients.end())
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
