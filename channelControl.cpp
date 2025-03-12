@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/12 16:40:50 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 17:36:36 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	std::string channelName, newTopic;
 
 	lineStream >> channelName;
-	if (channelName.empty() || channelName == "ft_teste")
+	if (channelName.empty())
 	{
 		std::string errMsg = ":localhost 461 " + channelName + " :Not enough parameters\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);

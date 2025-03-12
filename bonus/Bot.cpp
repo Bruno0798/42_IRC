@@ -33,6 +33,7 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 
 }
 
+//pre merge
 void Server::checkCommandBot(std::istringstream &lineStream)
 {
 	std::string channel, order;
