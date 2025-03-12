@@ -248,7 +248,6 @@ void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
 //
 //		if (client_it->getPassword() == _password && !user.isAuth())
 //		{
-//			welcome_messages(user);
 //			client_it->setAuth(true);
 //			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
 //		}
@@ -259,8 +258,17 @@ void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
 //		std::cerr << "Client not found for fd: " << client_fd << std::endl;
 //}
 
-void Server::welcome_messages(Client &user)
+void Server::welcome_messages(int client_fd)
 {
+	// Find the client associated with the given fd
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if (client_it == _clients.end())
+	{
+		std::cerr << "Client not found for fd: " << client_fd << std::endl;
+		return;
+	}
+
+	Client &user = *client_it;
 	std::string welcome = ":localhost 001 " + user.getNickname() + " :Welcome to the IRC server\r\n";
 	std::string yourHost = ":localhost 002 " + user.getNickname() + " :Your host is localhost, running version 1.0\r\n";
 	std::string created = ":localhost 003 " + user.getNickname() + " :This server was created today\r\n";

@@ -55,7 +55,7 @@ void Server::handleNick(int client_fd, const std::string& message)
 	std::string cmd, nickname, response;
 	iss >> cmd >> nickname;
 
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	std::vector<Client>::iterator	 client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (nickname.empty())
 	{
 		response = ":localhost 431 :No nickname given\r\n";
@@ -70,16 +70,29 @@ void Server::handleNick(int client_fd, const std::string& message)
 	}
 	if (client_it != _clients.end())
 	{
-		// Check if the nickname is already in use
 		for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
-			if (it->getNickname() == nickname)
+			std::string nicknamecpy = nickname;
+			std::string nicknamecpyy = it->getNickname();
+			std::transform(nicknamecpy.begin(), nicknamecpy.end(), nicknamecpy.begin(), ::tolower);
+			std::transform(nicknamecpyy.begin(), nicknamecpyy.end(), nicknamecpyy.begin(), ::tolower);
+			if (nicknamecpyy == nicknamecpy)
 			{
-				response = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
+				if (!client_it->isRegistered())
+					response = ":localhost 433 * " + nickname + " :Nickname is already in use\r\n";
+				else
+					response = ":localhost 433 " + client_it->getNickname() + " :Nickname is already in use\r\n";
 				send(client_fd, response.c_str(), response.size(), 0);
 				std::cout << " esta em use este NICK" << std::endl;
 				return;
 			}
+		}
+		if (client_it->isRegistered())
+		{
+			response = ":" + client_it->getNickname() + "!~" + client_it->getUsername() + "@localhost NICK :" + nickname + "\r\n";
+			send(client_fd, response.c_str(), response.size(), 0);
+			for (std::map<std::string, Channel>::iterator channel_it = _channels.begin(); channel_it != _channels.end(); ++channel_it)
+				broadcastMessageToChannel(response, channel_it->first);
 		}
 		client_it->setNickname(nickname);
 	}

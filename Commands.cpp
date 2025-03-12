@@ -7,7 +7,10 @@ void Server::checkRegist(int client_fd)
 {
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if(!client_it->getNickname().empty() && !client_it->getUsername().empty())
+    {
 		client_it->setRegistered(true);
+		welcome_messages(client_fd);
+	}
 }
 
 void Server::handleCommand(Client& user, int client_fd)
@@ -26,8 +29,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			;
 		else if(!user.isAuth())
 		{
-			if (cmds == "PASS")
-				handlePass(client_fd, line);
+			if (cmds == "PASS") handlePass(client_fd, line);
 			else
 			{
 				std::string response = ":localhost 451 :You have not authenticated\r\n";
@@ -35,12 +37,9 @@ void Server::handleCommand(Client& user, int client_fd)
 			}
 		} else if(!user.isRegistered())
 		{
-			if (cmds == "PASS")
-				handlePass(client_fd, line);
-			else if (cmds =="NICK")
-				handleNick(client_fd, line);
-			else if (cmds == "USER")
-				handleUser(client_fd, line);
+			if (cmds == "PASS") handlePass(client_fd, line);
+			else if (cmds =="NICK") handleNick(client_fd, line);
+			else if (cmds == "USER") handleUser(client_fd, line);
 			checkRegist(client_fd);
 		} else
 		{
@@ -58,49 +57,8 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmds =="PART") checkCommandPart(cmd);
 			else if (cmds =="BOT") checkCommandBot(cmd);
 		}
-
 	}
 	user.delete_buffer();
-}
-
-std::string trimLeadingSpaces(const std::string& str)
-{
-	size_t start = 0;
-	while (start < str.size() && std::isspace(str[start])) {
-		start++;
-	}
-	return str.substr(start);
-}
-
-void Server::handleUser(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, username, hostname, servername, realname;
-	iss >> cmd >> username >> hostname >> servername;
-	std::getline(iss, realname);
-	realname = trimLeadingSpaces(realname);
-
-	if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
-	{
-		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
-		send(client_fd, error.c_str(), error.length(), 0);
-		return;
-	}
-
-	// Remove leading colon from the realname
-	if (realname[0] == ':')
-	{
-		realname = realname.substr(1);
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
-		client_it->setUserName(username);
-		client_it->setRealName(realname);
-	}
-	else
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
 }
 
 int Server::getClientFdByName(const std::string& nickname) {
@@ -110,72 +68,6 @@ int Server::getClientFdByName(const std::string& nickname) {
 		}
 	}
 	throw std::runtime_error("Client not found");
-}
-
-void Server::handlePrivmsg(int client_fd, const std::string& message)
-{
-    std::istringstream iss(message);
-    std::string cmd, target, msg;
-    iss >> cmd >> target;
-    std::getline(iss, msg);
-
-    if (target.empty() || msg.empty())
-    {
-        std::cerr << "PRIVMSG command requires a target and a message" << std::endl;
-        return;
-    }
-
-    // Remove leading colon from the message
-    if (msg[0] == ':')
-    {
-        msg = msg.substr(1);
-    }
-
-    std::string response = ":";
-    std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-    if (client_it != _clients.end())
-    {
-        response += client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG " + target + " :" + msg + "\r\n";
-    }
-    else
-    {
-        std::cerr << "Client not found for fd: " << client_fd << std::endl;
-        return;
-    }
-
-    // Check if the target is a channel
-    std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
-    if (channel_it != _channels.end())
-    {
-        const Channel& channel = channel_it->second;
-        for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
-        {
-            if (it->first != client_fd)
-                send(it->first, response.c_str(), response.size(), 0);
-			std::cout << "target:" << it->first << "Bot vai falar: "<< response  << std::endl;
-        }
-    }
-    else
-    {
-        // Target is a user
-        try
-        {
-            int target_fd = getClientFdByName(target);
-            std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(target_fd));
-            if (target_it != _clients.end())
-            {
-                send(target_it->getFd(), response.c_str(), response.size(), 0);
-            }
-            else
-            {
-                std::cerr << "User not found: " << target << std::endl;
-            }
-        }
-        catch (const std::runtime_error& e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
-    }
 }
 
 void Server::handleWho(int client_fd, const std::string& message)
