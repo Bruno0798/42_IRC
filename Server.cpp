@@ -165,9 +165,7 @@ void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i
 	{
 		removeClientsFromChannels(fds[i].fd);
 		std::cout << "Client disconnected: " << fds[i].fd << std::endl;
-
 	}
-		
 	else
 		perror("recv");
 	close(fds[i].fd);

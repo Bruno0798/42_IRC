@@ -1,6 +1,7 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
+#include <vector>
 
 void Server::JoinBot(int client_fd, const std::string& channel_name)
 {
@@ -88,7 +89,7 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	else if (msg == "talk")
 	{
 		std::cout << "Bot vai falar "  << std::endl;
-		PrivmsgBot(channelName, "yo");
+		PrivmsgBot(channelName, getMsg());
 		return;
 	}
 	
@@ -121,15 +122,9 @@ void Server::PartBot(std::string &channelName)
 
 void Server::PrivmsgBot(const std::string& channel, const std::string& msg)
 {
-
-
 	std::string response = ":";
 
 	response += ":StepBro!StepBro@localhost PRIVMSG " + channel + " :" + msg + "\r\n";
-
-
-	
-	
 	std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
 	if (channel_it != _channels.end())
 	{
@@ -142,4 +137,23 @@ void Server::PrivmsgBot(const std::string& channel, const std::string& msg)
 		}
 	}
 
+}
+
+std::string Server::getMsg()
+{
+	std::vector<std::string> msgs(7);
+
+	msgs[0] = "Ducking the ruber duck";
+	msgs[1] = "yo";
+	msgs[2] = "Make lekaaaaaaaaaaaaaaaaas!";
+	msgs[3] = "Vai ser com o pe que esta mais a mao";
+	msgs[4] = "Na boa bro o IRC e facil";
+	msgs[5] = "The cake is a lie";
+	msgs[6] = "Oh a waching machine";
+
+	std::srand(std::time(0)); // Seed the random number generator
+    int msg = std::rand() % 6;
+	
+	std::cout << "coord is:"<<msg << std::endl;
+	return msgs[msg];
 }
