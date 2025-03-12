@@ -28,73 +28,73 @@
  *		ERR_WILDTOPLEVEL (414)
  *		RPL_AWAY (301)
  *
- * @param server
- * @param client_fd User sending a msg
- * @param cmd_infos Structure w/ prefix, command name and message
  *
  */
 
 void Server::handlePrivmsg(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
-	std::string cmd, target, msg;
-	iss >> cmd >> target;
+	std::string cmd, targets, msg;
+	iss >> cmd >> targets;
 	std::getline(iss, msg);
 
-	if (target.empty() || msg.empty())
+	std::cout << "Debug: PRIVMSG: CMD: " << cmd << std::endl;
+	std::cout << "Debug: PRIVMSG: targets: " << targets << std::endl;
+	std::cout << "Debug: PRIVMSG: msg: " << msg << std::endl;
+
+
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if (targets.empty())
 	{
-		std::cerr << "PRIVMSG command requires a target and a message" << std::endl;
+		std::string response = ":localhost 411 " + client_it->getNickname() + ":No recipient given PRIVMSG\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
 
 	// Remove leading colon from the message
 	if (msg[0] == ':')
-	{
 		msg = msg.substr(1);
-	}
 
-	std::string response = ":";
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	std::vector<std::string> targetList;
+	std::istringstream targetStream(targets);
+	std::string target;
+	while (std::getline(targetStream, target, ','))
+		targetList.push_back(target);
+
+	std::string response;
 	if (client_it != _clients.end())
-	{
-		response += client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG " + target + " :" + msg + "\r\n";
-	}
+		response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG ";
 	else
-	{
-		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-		return;
-	}
+		response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
 
-	// Check if the target is a channel
-	std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
-	if (channel_it != _channels.end())
+	for (const std::string& target : targetList)
 	{
-		const Channel& channel = channel_it->second;
-		for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
+		std::string fullResponse = response + target + " :" + msg + "\r\n";
+
+		// Check if the target is a channel
+		std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
+		if (channel_it != _channels.end())
 		{
-			if (it->first != client_fd)
-				send(it->first, response.c_str(), response.size(), 0);
+			const Channel& channel = channel_it->second;
+			for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
+			{
+				if (it->first != client_fd)
+					send(it->first, fullResponse.c_str(), fullResponse.size(), 0);
+			}
 		}
-	}
-	else
-	{
-		// Target is a user
-		try
+		else
 		{
 			int target_fd = getClientFdByName(target);
 			std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(target_fd));
 			if (target_it != _clients.end())
 			{
-				send(target_it->getFd(), response.c_str(), response.size(), 0);
+				send(target_it->getFd(), fullResponse.c_str(), fullResponse.size(), 0);
 			}
 			else
 			{
-				std::cerr << "User not found: " << target << std::endl;
+				response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
+				send(client_fd, response.c_str(), response.size(), 0);
 			}
-		}
-		catch (const std::runtime_error& e)
-		{
-			std::cerr << e.what() << std::endl;
 		}
 	}
 }

@@ -72,7 +72,11 @@ void Server::handleNick(int client_fd, const std::string& message)
 	{
 		for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
-			if (it->getNickname() == nickname)
+			std::string nicknamecpy = nickname;
+			std::string nicknamecpyy = it->getNickname();
+			std::transform(nicknamecpy.begin(), nicknamecpy.end(), nicknamecpy.begin(), ::tolower);
+			std::transform(nicknamecpyy.begin(), nicknamecpyy.end(), nicknamecpyy.begin(), ::tolower);
+			if (nicknamecpyy == nicknamecpy)
 			{
 				if (!client_it->isRegistered())
 					response = ":localhost 433 * " + nickname + " :Nickname is already in use\r\n";

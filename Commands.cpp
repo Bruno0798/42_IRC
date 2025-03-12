@@ -43,7 +43,6 @@ void Server::handleCommand(Client& user, int client_fd)
 			checkRegist(client_fd);
 		} else
 		{
-			std::cout << "JOIN?" << std::endl;
 			if (cmds =="PASS") handlePass(client_fd, line);
 			else if (cmds =="NICK") handleNick(client_fd, line);
 			else if (cmds == "USER") handleUser(client_fd, line);
