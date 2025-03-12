@@ -71,10 +71,6 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 
 void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
 {
-
-	if (!pass.empty())
-		std::cout << pass << std::endl; 
-	
 	if (channel_name[0] != '#')
 	{
 		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
@@ -82,32 +78,43 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		return;
 	}
 
-	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (it == _channels.end())
-	{
-		// Create a new channel if it doesn't exist
-		Channel new_channel(channel_name);
-		new_channel.addClient(client_fd);
-		_channels[channel_name] = new_channel;
-		_channels[channel_name].setTopic("Great topic bro!" );
-		_channels[channel_name].addOperator(_clientFd);
-		std::cout << "Created and joined new channel: " << channel_name << std::endl;
-	}
-	else
-	{
-		// Add client to existing channel
-		if (it->second.canJoin(_clientFd))
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+
+    if (it == _channels.end()) 
+    {
+        // Criar um novo canal se ele não existir
+        Channel new_channel(channel_name);
+        new_channel.addClient(client_fd);
+        _channels[channel_name] = new_channel;
+        _channels[channel_name].setTopic("Great topic bro!");
+        _channels[channel_name].addOperator(client_fd);
+        std::cout << "Created and joined new channel: " << channel_name << std::endl;
+    } 
+    else 
+    {
+        int join_status = it->second.canJoin(client_fd, pass);
+        if (join_status == 471)
 		{
-			it->second.addClient(client_fd);
-			std::cout << "Joined existing channel: " << channel_name << std::endl;
-		}
-		else 
-		{
-			std::string errorMsg = ":localhost 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (Channel is invite only)\r\n";
-			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
+            send(client_fd, (":ircserver 471 " + channel_name + " :Channel is full\r\n").c_str(), 39, 0);
 			return;
 		}
+        else if (join_status == 473){
+            send(client_fd, (":ircserver 473 " + channel_name + " :Invite only channel\r\n").c_str(), 44, 0);
+
+			return;
+		}
+        else if (join_status == 475){
+            send(client_fd, (":ircserver 475 " + channel_name + " :Incorrect channel key\r\n").c_str(), 47, 0);
+			return;
+		}
+        else 
+        {
+            it->second.addClient(client_fd);
+            std::cout << "Joined existing channel: " << channel_name << std::endl;
+        }
+    }
+
 
 	}
 
@@ -129,4 +136,5 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 			
 		makeUserList(channel_name);
 	}
+
 }
