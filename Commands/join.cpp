@@ -1,6 +1,7 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
+#include <cctype>
 
 /**
  * @brief The JOIN command indicates that the client wants to join the given channel(s),
@@ -103,7 +104,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		}
 		else 
 		{
-			std::string errorMsg = ":42 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (Channel is invite only)\r\n";
+			std::string errorMsg = ":localhost 473 " + client_it->getNickname() + " " + channel_name + " :Cannot join channel (Channel is invite only)\r\n";
 			send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
 			return;
 		}
@@ -114,8 +115,18 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
-		std::string msgTopic = ":42 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
-		send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+		
+		if (!std::isprint(getChannelTopic(channel_name)[1]))
+		{
+			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + channel_name + " :No topic is set\r\n";
+			send(_clientFd, msg2.c_str(), msg2.size(), 0);
+		}
+		else
+		{
+			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
+			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+		}
+			
 		makeUserList(channel_name);
 	}
 }

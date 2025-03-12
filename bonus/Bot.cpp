@@ -23,7 +23,7 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 	}
 	else 
 	{
-		std::string errorMsg = ":42 482 Bot " + channel_name + " :You're not channel operator\r\n"; 
+		std::string errorMsg = ":localhost 482 Bot " + channel_name + " :You're not channel operator\r\n"; 
 		send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
 		return;
 	}
@@ -38,8 +38,6 @@ void Server::checkCommandBot(std::istringstream &lineStream)
 	std::string channel, order;
 	lineStream >> channel;
 	lineStream >> order;
-	
-	std::cout << "aqui bro!!!!!!!! " << std::endl;
 	
 	if (channel.empty())
 	{
@@ -61,11 +59,10 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
+		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-
 	bool inChannel = LookBotInChannel(channelName);
 	if (msg == "join" && !inChannel)
 	{
@@ -73,10 +70,9 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 		JoinBot(424242, channelName);
 		return;
 	}
-
 	if (!inChannel)
 	{
-		std::string errMsg = ":42 442 " + channelName + " :BOT is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + channelName + " :BOT is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
@@ -92,8 +88,6 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 		PrivmsgBot(channelName, getMsg());
 		return;
 	}
-	
-
 }
 
 void Server::PartBot(std::string &channelName)
@@ -101,14 +95,14 @@ void Server::PartBot(std::string &channelName)
 	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
+		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 
 	if (!LookBotInChannel(channelName))
 	{
-		std::string errMsg = ":42 442 " + channelName + " :BOT is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + channelName + " :BOT is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
