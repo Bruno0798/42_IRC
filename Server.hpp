@@ -80,7 +80,7 @@ class Server
 
 
 
-		void welcome_messages(Client &user);
+		void welcome_messages(int client_fd);
 		class ClientFdMatcher {
 		public:
 			ClientFdMatcher(int fd) : _fd(fd) {}

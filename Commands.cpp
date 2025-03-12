@@ -7,7 +7,10 @@ void Server::checkRegist(int client_fd)
 {
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if(!client_it->getNickname().empty() && !client_it->getUsername().empty())
+    {
 		client_it->setRegistered(true);
+		welcome_messages(client_fd);
+	}
 }
 
 void Server::handleCommand(Client& user, int client_fd)
@@ -40,6 +43,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			checkRegist(client_fd);
 		} else
 		{
+			std::cout << "JOIN?" << std::endl;
 			if (cmds =="PASS") handlePass(client_fd, line);
 			else if (cmds =="NICK") handleNick(client_fd, line);
 			else if (cmds == "USER") handleUser(client_fd, line);
