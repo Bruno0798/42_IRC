@@ -56,6 +56,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmds == "INVITE") handleInvite(client_fd, line);
 			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmds =="PART") checkCommandPart(cmd);
+			else if (cmds =="BOT") checkCommandBot(cmd);
 		}
 
 	}
@@ -151,6 +152,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
         {
             if (it->first != client_fd)
                 send(it->first, response.c_str(), response.size(), 0);
+			std::cout << "target:" << it->first << "Bot vai falar: "<< response  << std::endl;
         }
     }
     else

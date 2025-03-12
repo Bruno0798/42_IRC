@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/02/26 10:16:43 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 16:42:08 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,17 @@ void Server::makeUserList(std::string channel_name)
 		std::map<int, std::vector<std::string> > clients = channel.getClients();
 		
 		std::string nameList = ":ircserver 353 " + getClient(_clientFd)->getNickname() + " @ " + channel_name + " :";
+		
 
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
+			
 			if (channel.isOperator(It->first))
 				nameList += "@";
-			nameList+= getClient(It->first)->getNickname() + " ";
+			if (It->first == 424242)
+				nameList+= "StepBro ";
+			else
+				nameList+= getClient(It->first)->getNickname() + " ";
 		}
 		nameList += "\r\n";
 
@@ -70,7 +75,8 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
 			int clientFd = It->first;
-			send(clientFd, message.c_str(), message.size(), 0);
+			if (clientFd != 424242)
+				send(clientFd, message.c_str(), message.size(), 0);
 		}
 	}
 	else

@@ -70,6 +70,14 @@ class Server
 		void							commandTopic(std::string &channelName, std::string &newTopic);
 		void							removeClientsFromChannels(int clientFd);
 		void							checkCommandJoin(std::istringstream &lineStream);
+		
+		void							checkCommandBot(std::istringstream &lineStream);
+		void							commandBot(std::string &channelName, const std::string &msg);
+		bool							LookBotInChannel(std::string channel);
+		void							JoinBot(int client_fd, const std::string& channel_name);
+		void							PartBot(std::string &channelName);
+		void							PrivmsgBot(const std::string& channel, const std::string& msg);
+		std::string						getMsg();
 
 		//-------------------------------------
 

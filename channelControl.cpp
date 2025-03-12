@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/10 17:23:49 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/12 17:36:36 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,14 +53,14 @@ void Server::commandPart(std::string &channelName, const std::string &msg)
 	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
+		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 
 	if (!LookClientInChannel(channelName))
 	{
-		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + channelName + " :User is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
@@ -82,9 +82,9 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	std::string channelName, newTopic;
 
 	lineStream >> channelName;
-	if (channelName.empty() || channelName == "ft_teste")
+	if (channelName.empty())
 	{
-		std::string errMsg = ":42 461 " + channelName + " :Not enough parameters\r\n";
+		std::string errMsg = ":localhost 461 " + channelName + " :Not enough parameters\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
@@ -92,14 +92,14 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
-		std::string errMsg = ":42 403 " + channelName + " :No such channel!\r\n";
+		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 
 	if (!LookClientInChannel(channelName))
 	{
-		std::string errMsg = ":42 442 " + channelName + " :User is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + channelName + " :User is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
@@ -115,7 +115,7 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 		std::string topic = getChannelTopic(channelName);
 		if (topic.empty())
 			topic = "No topic is set";
-		std::string topicMsg = ":42 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
+		std::string topicMsg = ":localhost 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 		return ;
 	}
@@ -132,7 +132,9 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 	}
 	else
 	{
-		std::string topicMsg = ":42 482 " + getClient(_clientFd)->getNickname() + " " + channelName + " :You're not channel operator\r\n";
+		std::string topicMsg = ":localhost 482 " + getClient(_clientFd)->getNickname() + " " + channelName + " :You're not channel operator\r\n"; 
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 	}
 }
+
+

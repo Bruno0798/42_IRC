@@ -1,6 +1,7 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
+#include <cctype>
 
 /**
  * @brief The JOIN command indicates that the client wants to join the given channel(s),
@@ -69,7 +70,7 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 
 
 void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
-{	
+{
 	if (channel_name[0] != '#')
 	{
 		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
@@ -100,6 +101,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		}
         else if (join_status == 473){
             send(client_fd, (":ircserver 473 " + channel_name + " :Invite only channel\r\n").c_str(), 44, 0);
+
 			return;
 		}
         else if (join_status == 475){
@@ -113,13 +115,26 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         }
     }
 
-    if (client_it != _clients.end()) 
-    {
-        std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
-        send(client_fd, response.c_str(), response.size(), 0);
-        std::string msgTopic = ":ircserver 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
-        send(client_fd, msgTopic.c_str(), msgTopic.size(), 0);
-        makeUserList(channel_name);
-    }
-}
 
+	}
+
+	if (client_it != _clients.end())
+	{
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
+		send(_clientFd, response.c_str(), response.size(), 0);
+		
+		if (!std::isprint(getChannelTopic(channel_name)[1]))
+		{
+			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + channel_name + " :No topic is set\r\n";
+			send(_clientFd, msg2.c_str(), msg2.size(), 0);
+		}
+		else
+		{
+			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
+			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
+		}
+			
+		makeUserList(channel_name);
+	}
+
+}
