@@ -69,6 +69,13 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 }
 
 
+std::string getLower(const std::string& str)
+{
+	std::string lower = str;
+	std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+	return lower;
+}
+
 void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
 {
 	if (channel_name[0] != '#')
@@ -77,10 +84,20 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return;
 	}
+	bool show = false;
 
-    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+	
+	std::map<std::string, Channel>::iterator it = _channels.begin();
+	while (it != _channels.end())
+	{
+		if (getLower(it->first) == getLower(channel_name))
+			break;
+		++it;
+	}
+	if (it == _channels.end() || !it->second.hasClient(_clientFd))
+		show = true;
+
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-
     if (it == _channels.end()) 
     {
         // Criar um novo canal se ele não existir
@@ -89,7 +106,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         _channels[channel_name] = new_channel;
         _channels[channel_name].setTopic("Great topic bro!");
         _channels[channel_name].addOperator(client_fd);
-        std::cout << "Created and joined new channel: " << channel_name << std::endl;
+        //std::cout << "Created and joined new channel: " << channel_name << std::endl;
     } 
     else 
     {
@@ -111,11 +128,10 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         else 
         {
             it->second.addClient(client_fd);
-            std::cout << "Joined existing channel: " << channel_name << std::endl;
         }
     }
-
-	if (client_it != _clients.end())
+	
+	if (show)
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
@@ -130,8 +146,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
 			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
 		}
-			
 		makeUserList(channel_name);
 	}
-
 }

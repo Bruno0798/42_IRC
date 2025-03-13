@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/12 16:42:08 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/13 14:02:02 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,14 +30,20 @@ std::vector<Client>::iterator Server::getClient(int clientFd)
 
 void Server::makeUserList(std::string channel_name)
 {
-	std::map<std::string, Channel>::const_iterator channelIt = _channels.find(channel_name);
-	
+	std::map<std::string, Channel>::iterator channelIt = _channels.begin();
+	while (channelIt != _channels.end())
+	{
+		if (getLower(channelIt->first) == getLower(channel_name))
+			break;
+		++channelIt;
+	}
+
 	if (channelIt != _channels.end())
 	{
 		Channel channel = channelIt->second;
 		std::map<int, std::vector<std::string> > clients = channel.getClients();
 		
-		std::string nameList = ":ircserver 353 " + getClient(_clientFd)->getNickname() + " @ " + channel_name + " :";
+		std::string nameList = ":ircserver 353 " + getClient(_clientFd)->getNickname() + " @ " + channel.getName() + " :";
 		
 
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
@@ -52,11 +58,11 @@ void Server::makeUserList(std::string channel_name)
 		}
 		nameList += "\r\n";
 
-		std::cout << nameList << std::endl;
-		broadcastMessageToChannel(nameList, channel_name);
+		//std::cout << nameList << std::endl;
+		broadcastMessageToChannel(nameList, channel.getName());
 		
-		std::string endOfNames = ":ircserver 366 " + getClient(_clientFd)->getNickname() + " " + channel_name + " :End of /NAMES list.\r\n";
-		std::cout << endOfNames << std::endl;
+		std::string endOfNames = ":ircserver 366 " + getClient(_clientFd)->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
+		//std::cout << endOfNames << std::endl;
 		send(_clientFd, endOfNames.c_str(), endOfNames.size(), 0);
 	}
 	else
@@ -65,7 +71,13 @@ void Server::makeUserList(std::string channel_name)
 
 void Server::broadcastMessageToChannel(const std::string& message, std::string channel)
 {
-	std::map<std::string, Channel >::const_iterator channelIt = _channels.find(channel);
+	std::map<std::string, Channel>::iterator channelIt = _channels.begin();
+	while (channelIt != _channels.end())
+	{
+		if (getLower(channelIt->first) == getLower(channel))
+			break;
+		++channelIt;
+	}
 
 	if (channelIt != _channels.end())
 	{

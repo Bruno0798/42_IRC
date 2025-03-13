@@ -13,13 +13,11 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 	}
 
 	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	//std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-
 	// Add client to existing channel
 	if (it->second.isOperator(_clientFd))
 	{
 		it->second.addClient(client_fd);
-		std::cout << "Bot Joined existing channel: " << channel_name << std::endl;
+		//std::cout << "Bot Joined existing channel: " << channel_name << std::endl;
 	}
 	else 
 	{
@@ -74,7 +72,7 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	bool inChannel = LookBotInChannel(channelName);
 	if (msg == "join" && !inChannel)
 	{
-		std::cout << "Bot vai dar join "  << std::endl;
+		//std::cout << "Bot vai dar join "  << std::endl;
 		JoinBot(424242, channelName);
 		return;
 	}
@@ -86,13 +84,13 @@ void Server::commandBot(std::string &channelName, const std::string &msg)
 	}
 	else if (msg == "part" && It->second.isOperator(_clientFd))
 	{
-		std::cout << "Bot vai dar part "  << std::endl;
+		//std::cout << "Bot vai dar part "  << std::endl;
 		PartBot(channelName);
 		return;
 	}
 	else if (msg == "talk")
 	{
-		std::cout << "Bot vai falar "  << std::endl;
+		//std::cout << "Bot vai falar "  << std::endl;
 		PrivmsgBot(channelName, getMsg());
 		return;
 	}
@@ -135,7 +133,7 @@ void Server::PrivmsgBot(const std::string& channel, const std::string& msg)
 		{
 			if (it->first != 424242)
 				send(it->first, response.c_str(), response.size(), 0);
-			std::cout << "target:" << it->first << "Bot vai falar: "<< response  << std::endl;
+			//std::cout << "target:" << it->first << "Bot vai falar: "<< response  << std::endl;
 		}
 	}
 
@@ -156,6 +154,6 @@ std::string Server::getMsg()
 	std::srand(std::time(0)); // Seed the random number generator
     int msg = std::rand() % 6;
 	
-	std::cout << "coord is:"<<msg << std::endl;
+	//std::cout << "coord is:"<<msg << std::endl;
 	return msgs[msg];
 }

@@ -23,7 +23,7 @@ void Server::handleCommand(Client& user, int client_fd)
 	{
 		std::istringstream cmd(line);
 		cmd >> cmds;
-		std::cout << "DEBUG: CMD: " + line << std::endl << std::endl;
+		//std::cout << "DEBUG: CMD: " + line << std::endl << std::endl;
 		if(cmds == "CAP" || cmds == "WHO")
 			;
 		else if(!user.isAuth())
