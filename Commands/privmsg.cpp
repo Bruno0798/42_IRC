@@ -21,12 +21,8 @@
  * 	Numeric Replies:
  *		ERR_NOSUCHNICK (401)
  *		ERR_CANNOTSENDTOCHAN (404)
- *		ERR_TOOMANYTARGETS (407)
  *		ERR_NORECIPIENT (411)
  *		ERR_NOTEXTTOSEND (412)
- *		ERR_NOTOPLEVEL (413)
- *		ERR_WILDTOPLEVEL (414)
- *		RPL_AWAY (301)
  */
 
 void Server::handlePrivmsg(int client_fd, const std::string& message)
@@ -70,8 +66,9 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	else
 		response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
 
-	for (const std::string& target : targetList)
+	for (std::vector<std::string>::iterator target_it = targetList.begin(); target_it != targetList.end(); ++target_it)
 	{
+		std::string target = *target_it;
 		std::string fullResponse = response + target + msg + "\r\n";
 
 		// Check if the target is a channel
