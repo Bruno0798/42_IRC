@@ -110,11 +110,11 @@ void Server::handleWho(int client_fd, const std::string& message)
 void Server::handleKick(int client_fd, const std::string& message)
 {
     std::istringstream iss(message);
-    std::string cmd, channel, target, reason;
-    iss >> cmd >> channel >> target;
+    std::string cmd, channel, targets, reason;
+    iss >> cmd >> channel >> targets;
     std::getline(iss, reason);
 
-    if (channel.empty() || target.empty())
+    if (channel.empty() || targets.empty())
     {
         std::string error = ":localhost 461 KICK :Not enough parameters\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
@@ -137,15 +137,22 @@ if (!channel_it->second.isOperator(client_fd))
 std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 if (kicker == _clients.end())
     return;
+std::istringstream targets_stream(targets);
+    std::string target;
+
+    while (std::getline(targets_stream, target, ','))
+    {
     try {
         int target_fd = getClientFdByName(target);
-        if (reason.empty())
-            reason = " :No reason given";
-        else if (reason[0] == ':')
-            reason = reason.substr(1);
+        if (!reason.empty() && reason[0] == ' ')
+                reason = reason.substr(1);
+            if (reason.empty())
+                reason = ":" + kicker->getNickname();
+            else if (reason[0] != ':')
+                reason = ":" + reason;
 
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                             "@localhost KICK " + channel + " " + target + "\r\n";
+                             "@localhost KICK " + channel + " " + target + " " + reason + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
 		channel_it->second.revokePermissions(target_fd);
@@ -155,6 +162,7 @@ if (kicker == _clients.end())
         std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
     }
+}
 }
 
 void Server::handleMode(int client_fd, const std::string& message)
