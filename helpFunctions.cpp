@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/13 11:34:31 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/13 14:02:02 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,11 @@ void Server::makeUserList(std::string channel_name)
 		}
 		nameList += "\r\n";
 
-		std::cout << nameList << std::endl;
+		//std::cout << nameList << std::endl;
 		broadcastMessageToChannel(nameList, channel.getName());
 		
 		std::string endOfNames = ":ircserver 366 " + getClient(_clientFd)->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
-		std::cout << endOfNames << std::endl;
+		//std::cout << endOfNames << std::endl;
 		send(_clientFd, endOfNames.c_str(), endOfNames.size(), 0);
 	}
 	else

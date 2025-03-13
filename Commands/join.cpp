@@ -85,6 +85,8 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		return;
 	}
 	bool show = false;
+
+	
 	std::map<std::string, Channel>::iterator it = _channels.begin();
 	while (it != _channels.end())
 	{
@@ -104,7 +106,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         _channels[channel_name] = new_channel;
         _channels[channel_name].setTopic("Great topic bro!");
         _channels[channel_name].addOperator(client_fd);
-        std::cout << "Created and joined new channel: " << channel_name << std::endl;
+        //std::cout << "Created and joined new channel: " << channel_name << std::endl;
     } 
     else 
     {
@@ -126,7 +128,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         else 
         {
             it->second.addClient(client_fd);
-            std::cout << "Joined existing channel: " << channel_name << std::endl;
         }
     }
 	
