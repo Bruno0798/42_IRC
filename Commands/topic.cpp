@@ -41,8 +41,16 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
+
+	std::map<std::string, Channel >::iterator It = _channels.begin();
+
+	while (It != _channels.end())
+	{
+		if (getLower(It->first) == getLower(channelName))
+			break;
+		++It;
+	}
 	
-	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
 		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
@@ -52,16 +60,16 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 
 	if (!LookClientInChannel(channelName))
 	{
-		std::string errMsg = ":localhost 442 " + channelName + " :User is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + It->first + " :User is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 	std::getline(lineStream >> std::ws, newTopic);
 	std::cout << newTopic << std::endl;
-	commandTopic(channelName, newTopic);
+	commandTopic(It->first, newTopic);
 }
 
-void Server::commandTopic(std::string &channelName, std::string &newTopic)
+void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 {
 	if (newTopic.empty() || newTopic[0] == ' ' )
 	{
@@ -72,20 +80,21 @@ void Server::commandTopic(std::string &channelName, std::string &newTopic)
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 		return ;
 	}
-	std::map<std::string, Channel >::const_iterator It = _channels.find(channelName);
+
+	std::map<std::string, Channel>::iterator It = _channels.find(channelName);
 	if (!It->second.isTopicRestricted() || It->second.isOperator(_clientFd))
 	{
 		if (newTopic[0] == ':')
 			newTopic.erase(0,1);
 		if (newTopic[0] == ':')
 			newTopic.erase(0,1);
-		std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
+		std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + It->first + " :" + newTopic + "\r\n";
 		broadcastMessageToChannel(topicChange, channelName);
 		changeChannelTopic(channelName, newTopic);
 	}
 	else
 	{
-		std::string topicMsg = ":localhost 482 " + getClient(_clientFd)->getNickname() + " " + channelName + " :You're not channel operator\r\n"; 
+		std::string topicMsg = ":localhost 482 " + getClient(_clientFd)->getNickname() + " " + It->first + " :You're not channel operator\r\n"; 
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 	}
 }

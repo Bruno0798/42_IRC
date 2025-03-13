@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:30:28 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/11 10:42:52 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/13 12:12:21 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,14 @@
 
 bool Server::LookClientInChannel(std::string channel)
 {
-	std::map<std::string, Channel >::const_iterator It = _channels.find(channel);
+	std::map<std::string, Channel>::iterator It = _channels.begin();
+	while (It != _channels.end())
+	{
+		if (getLower(It->first) == getLower(channel))
+			break;
+		++It;
+	}
+
 	if (It != _channels.end())
 	{
 		const std::map<int, std::vector<std::string> >& clients = It->second.getClients();
@@ -35,7 +42,14 @@ bool Server::LookClientInChannel(std::string channel)
 
 bool Server::LookBotInChannel(std::string channel)
 {
-	std::map<std::string, Channel >::const_iterator It = _channels.find(channel);
+	std::map<std::string, Channel>::iterator It = _channels.begin();
+	while (It != _channels.end())
+	{
+		if (getLower(It->first) == getLower(channel))
+			break;
+		++It;
+	}
+	
 	if (It != _channels.end())
 	{
 		const std::map<int, std::vector<std::string> >& clients = It->second.getClients();
@@ -52,25 +66,36 @@ bool Server::LookBotInChannel(std::string channel)
 
 std::string Server::getChannelTopic(std::string channel)
 {
-	std::map<std::string, Channel>::iterator It = _channels.find(channel);
-	
-	if (It != _channels.end())
+	std::map<std::string, Channel>::iterator it = _channels.begin();
+	while (it != _channels.end())
 	{
-		if (It->first == channel)
-			return It->second.getTopic();
+		if (getLower(it->first) == getLower(channel))
+			break;
+		++it;
+	}
+	
+	if (it != _channels.end())
+	{
+		return it->second.getTopic();
 	}
 	return "";
 }
 
 
-void Server::changeChannelTopic(std::string &channel, std::string &newTopic)
+void Server::changeChannelTopic(const std::string &channel, std::string &newTopic)
 {
-	std::map<std::string, Channel>::iterator It = _channels.find(channel);
-	
-	if (It != _channels.end())
+	std::map<std::string, Channel>::iterator it = _channels.begin();
+	while (it != _channels.end())
 	{
-		if (It->first == channel)
-			It->second.setTopic(newTopic);
+
+		if (getLower(it->first) == getLower(channel))
+			break;
+		++it;
+	}
+	
+	if (it != _channels.end())
+	{
+		it->second.setTopic(newTopic);
 	}
 
 }

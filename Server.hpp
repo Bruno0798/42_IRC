@@ -65,9 +65,9 @@ class Server
 		void							commandPart(std::string &channelName, const std::string &msg);
 		bool							LookClientInChannel(std::string channel);
 		std::string						getChannelTopic(std::string channel);
-		void							changeChannelTopic(std::string &channel, std::string &newTopic);
+		void							changeChannelTopic(const std::string &channel, std::string &newTopic);
 		void							checkCommandTopic(std::istringstream &lineStream);
-		void							commandTopic(std::string &channelName, std::string &newTopic);
+		void							commandTopic(const std::string &channelName, std::string &newTopic);
 		void							removeClientsFromChannels(int clientFd, const std::string &msg);
 		void							checkCommandJoin(std::istringstream &lineStream);
 		void							commandQuit(std::vector<struct pollfd>& fds, size_t i, std::string &msg);
@@ -101,5 +101,7 @@ class Server
 		int _fd;
 	};
 };
+
+std::string getLower(const std::string& str);
 
 #endif
