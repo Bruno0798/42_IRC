@@ -37,22 +37,20 @@ void Server::handleUser(int client_fd, const std::string& message)
 	std::getline(iss, realname);
 	realname = trimLeadingSpaces(realname);
 
-	if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+	if(client_it->isRegistered())
+	{
+		std::string response = ":localhost 462 " + client_it->getNickname() + ":You may not reregister\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
+	}
+	else if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
 	{
 		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
 		send(client_fd, error.c_str(), error.length(), 0);
-		return;
 	}
-
-	// Remove leading colon from the realname
-	if (realname[0] == ':')
+	else if (client_it != _clients.end())
 	{
 		realname = realname.substr(1);
-	}
-
-	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (client_it != _clients.end())
-	{
 		client_it->setUserName(username);
 		client_it->setRealName(realname);
 	}

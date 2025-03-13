@@ -133,7 +133,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 	
 	if (show)
 	{
-		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@10.12.5.7 JOIN " + channel_name + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
 		
 		if (!std::isprint(getChannelTopic(channel_name)[1]))

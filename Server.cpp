@@ -93,9 +93,9 @@ bool Server::initServer()
 	{
 		close(_fd);
 		perror("bind");
+		freeaddrinfo(_servinfo);
 		return false;
 	}
-
 	freeaddrinfo(_servinfo);
 
 	if (listen(_fd, 10) == -1)
@@ -171,7 +171,7 @@ void Server::handleNewConnection(std::vector<pollfd>& fds)
 		return;
 	}
 
-	std::cout << "New Connection on fd: " << client_fd << std::endl;
+	std::cout << GREEN << "New Connection on fd: " << client_fd << std::endl;
 
 	Client new_client(client_fd);
 	_clients.push_back(new_client);
@@ -204,7 +204,7 @@ void Server::handleClientDisconnection(std::vector<pollfd>& fds, size_t i, int b
 	if (bytes_received == 0)
 	{
 		removeClientsFromChannels(fds[i].fd, leaveMsg);
-		std::cout << "Client disconnected: " << fds[i].fd << std::endl;
+		std::cout << RED <<  "Client disconnected: " << fds[i].fd << WHITE << std::endl;
 	}
 	else
 		perror("recv");

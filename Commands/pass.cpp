@@ -29,8 +29,8 @@ void Server::handlePass(int client_fd, const std::string& message)
 	{
 		std::string response = ":localhost 461 " + client_it->getNickname() + ":Not enough parameters\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
-		return;
-	} else if(client_it->isAuth())
+	}
+	if(client_it->isAuth())
 	{
 		std::string response = ":localhost 462 " + client_it->getNickname() + ":You may not reregister\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
@@ -39,10 +39,13 @@ void Server::handlePass(int client_fd, const std::string& message)
 	{
 		if(password == _password)
 		{
+			std::cout << GREEN << "Password Correct!" << WHITE << std::endl;
 			client_it->setPassword(password);
 			client_it->setAuth(true);
+			std::cout << GREEN << "Client " << client_fd << " is now Authenticated" << WHITE << std::endl;
 			return ;
 		}
+		std::cout << RED << "Password Incorrect" << WHITE << std::endl;
 		std::string response = ":localhost 464 " + client_it->getNickname() + ":Password incorrect\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		client_it->delete_buffer();
