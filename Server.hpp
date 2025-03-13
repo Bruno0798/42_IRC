@@ -41,6 +41,7 @@ class Server
 
 		bool checkBuffer(const std::string& buffer);
 		void checkRegist(int client_fd);
+		std::string getPass();
 
 
 		//------------- COMMANDS --------------- //

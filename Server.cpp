@@ -2,6 +2,7 @@
 #include "Irc.hpp"
 #include <iostream>
 #include <cstring>
+#include <iomanip>
 #include <arpa/inet.h>
 #include <map>
 #include <string>
@@ -20,17 +21,57 @@ Server::~Server() {
 
 bool Server::fillServerInfo(char *port)
 {
-	memset(&_address, 0, sizeof(_address));
+	char hostname[256];
+	if (gethostname(hostname, sizeof(hostname)) == -1)
+	{
+		perror("gethostname");
+		return false;
+	}
+
+	struct hostent *host = gethostbyname(hostname);
+	if (host == NULL)
+	{
+		perror("gethostbyname");
+		return false;
+	}
+
 	_address.ai_family = AF_UNSPEC;
 	_address.ai_socktype = SOCK_STREAM;
 	_address.ai_flags = AI_PASSIVE;
 
-	int rv = getaddrinfo(NULL, port, &_address, &_servinfo);
+	int rv = getaddrinfo(host->h_name, port, &_address, &_servinfo);
 	if (rv != 0)
 	{
 		std::cerr << "getaddrinfo error: " << gai_strerror(rv) << std::endl;
 		return false;
 	}
+
+	char ipstr[INET6_ADDRSTRLEN];
+	void *addr;
+	if (_servinfo->ai_family == AF_INET) {
+		sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in*>(_servinfo->ai_addr);
+		addr = &(ipv4->sin_addr);
+	} else {
+		sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6*>(_servinfo->ai_addr);
+		addr = &(ipv6->sin6_addr);
+	}
+	inet_ntop(_servinfo->ai_family, addr, ipstr, sizeof(ipstr));
+	std::cout << " ________  _________         _____  _______      ______  " << std::endl;
+	std::cout << "|_   __  ||  _   _  |       |_   _||_   __ \\   .' ___  | " << std::endl;
+	std::cout << "  | |_ \\_||_/ | | \\_|         | |    | |__) | / .'   \\_|" << std::endl;
+	std::cout << "  |  _|       | |             | |    |  __ /  | |        " << std::endl;
+	std::cout << " _| |_       _| |_  _______  _| |_  _| |  \\ \\_\\ `.___.'\\ " << std::endl;
+	std::cout << "|_____|     |_____||_______||_____||____| |___|`.____ .' " << std::endl;
+	std::cout << "                                                         " << std::endl;
+
+	std::cout << std::endl
+		  << "\t\tServer Information" << std::endl
+		  << std::endl
+		  << "\t" << std::setw(8) << std::left << "IP" << ": " << ipstr << std::endl
+		  << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
+		  << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
+		  << std::endl;
+
 	return true;
 }
 
@@ -280,5 +321,10 @@ void Server::welcome_messages(int client_fd)
 	send(user.getFd(), created.c_str(), created.size(), 0);
 	send(user.getFd(), myInfo.c_str(), myInfo.size(), 0);
 	send(user.getFd(), serverNotice.c_str(), serverNotice.size(), 0);
+}
+
+std::string Server::getPass()
+{
+	return _password;
 }
 
