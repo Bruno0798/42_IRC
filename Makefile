@@ -1,8 +1,15 @@
 NAME = ircserv
+NAME_bonus = ircserv_bonus
 
 SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp helpFunctions.cpp channelControl.cpp utils.cpp Commands/ping.cpp Commands/join.cpp Commands/pass.cpp
-SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp bonus/Bot.cpp
+SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp 
+
+SRC_bonus = main.cpp Server.cpp Client.cpp Channel.cpp bonus/Commands_bonus.cpp helpFunctions.cpp channelControl.cpp utils.cpp Commands/ping.cpp Commands/join.cpp Commands/pass.cpp
+SRC_bonus += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp bonus/Bot.cpp
+
 OBJ = $(SRC:.cpp=.o)
+
+OBJ_bonus = $(SRC_bonus:.cpp=.o)
 
 CFLAGS = -Wall -Werror -Wextra
 CFLAGS = -std=c++98
@@ -15,15 +22,28 @@ $(NAME): $(OBJ)
 %.o: %.cpp
 	c++ $(CFLAGS) -c $< -o $@
 
+bonus: $(NAME_bonus)
+
+$(NAME_bonus): $(OBJ_bonus)
+		c++ -o $(NAME_bonus) $(OBJ_bonus)
+%.o: %.cpp
+	c++ $(CFLAGS) -c $< -o $@
+
 go: re
 	clear
 	./ircserv 6667 ola
 
+bonusgo: bonus
+		clear
+		./ircserv_bonus 6667 ola
+
 clean:
 		rm -rf $(OBJ)
+		rm -rf $(OBJ_bonus)
 
 fclean: clean
 		rm -f $(NAME)
+		rm -f $(NAME_bonus)
 
 re: fclean all
 

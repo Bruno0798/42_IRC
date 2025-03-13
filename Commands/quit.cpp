@@ -11,7 +11,3 @@ void Server::commandQuit(std::vector<struct pollfd>& fds, size_t i, std::string 
 		handleClientDisconnection(fds, i, 0, msg);
 }
 
-//pre merge
-
-
-	
