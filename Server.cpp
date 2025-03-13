@@ -18,7 +18,6 @@ Server::Server(int port, std::string& password)
 Server::~Server() {
 }
 
-
 bool Server::fillServerInfo(char *port)
 {
     char hostname[256];
@@ -45,14 +44,14 @@ bool Server::fillServerInfo(char *port)
         addr = host->h_addr_list[0];
         inet_ntop(AF_INET6, addr, ipstr, sizeof(ipstr));
     }
-    std::cout << "IP address: " << ipstr << std::endl;
 
     // Use localhost for getaddrinfo
+	memset(&_address, 0, sizeof(_address));
     _address.ai_family = AF_UNSPEC;
     _address.ai_socktype = SOCK_STREAM;
     _address.ai_flags = AI_PASSIVE;
 
-    int rv = getaddrinfo("localhost", port, &_address, &_servinfo);
+    int rv = getaddrinfo(NULL, port, &_address, &_servinfo);
     if (rv != 0)
     {
         std::cerr << "getaddrinfo error: " << gai_strerror(rv) << std::endl;
@@ -228,7 +227,6 @@ void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 	check >> cmd >> msg;
 	if (cmd == "QUIT")
 		commandQuit(fds, i, msg);
-		
 	else
 	{
 		handleCommand(user, fds[i].fd);

@@ -25,8 +25,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		cmd >> cmds;
 		std::string cmdsCpy = cmds;
 		std::transform(cmdsCpy.begin(), cmdsCpy.end(), cmdsCpy.begin(), ::toupper);
-		std::cout << "DEBUG: CMD: " + line << std::endl << std::endl;
-		//TODO:COMMAND QUIT GOES HERE
+		std::cout << GREEN << "RECEIVED:" << line << WHITE << std::endl;
 		if(cmds == "CAP" || cmds == "WHO")
 			;
 		else if(!user.isAuth())
@@ -34,6 +33,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			if (cmdsCpy == "PASS") handlePass(client_fd, line);
 			else
 			{
+				std::cout << RED << "ERROR: NOT AUTHENTICATED" << WHITE << std::endl;
 				std::string response = ":localhost 451 :You have not authenticated\r\n";
 				send(client_fd, response.c_str(), response.size(), 0);
 			}
