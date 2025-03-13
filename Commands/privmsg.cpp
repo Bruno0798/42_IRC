@@ -27,8 +27,6 @@
  *		ERR_NOTOPLEVEL (413)
  *		ERR_WILDTOPLEVEL (414)
  *		RPL_AWAY (301)
- *
- *
  */
 
 void Server::handlePrivmsg(int client_fd, const std::string& message)
@@ -87,9 +85,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 			int target_fd = getClientFdByName(target);
 			std::vector<Client>::iterator target_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(target_fd));
 			if (target_it != _clients.end())
-			{
 				send(target_it->getFd(), fullResponse.c_str(), fullResponse.size(), 0);
-			}
 			else
 			{
 				response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";

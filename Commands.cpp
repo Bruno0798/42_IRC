@@ -23,13 +23,15 @@ void Server::handleCommand(Client& user, int client_fd)
 	{
 		std::istringstream cmd(line);
 		cmd >> cmds;
+		std::string cmdsCpy = cmds;
+		std::transform(cmdsCpy.begin(), cmdsCpy.end(), cmdsCpy.begin(), ::toupper);
 		std::cout << "DEBUG: CMD: " + line << std::endl << std::endl;
 		//TODO:COMMAND QUIT GOES HERE
 		if(cmds == "CAP" || cmds == "WHO")
 			;
 		else if(!user.isAuth())
 		{
-			if (cmds == "PASS") handlePass(client_fd, line);
+			if (cmdsCpy == "PASS") handlePass(client_fd, line);
 			else
 			{
 				std::string response = ":localhost 451 :You have not authenticated\r\n";
@@ -37,25 +39,25 @@ void Server::handleCommand(Client& user, int client_fd)
 			}
 		} else if(!user.isRegistered())
 		{
-			if (cmds == "PASS") handlePass(client_fd, line);
-			else if (cmds =="NICK") handleNick(client_fd, line);
-			else if (cmds == "USER") handleUser(client_fd, line);
+			if (cmdsCpy == "PASS") handlePass(client_fd, line);
+			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
+			else if (cmdsCpy == "USER") handleUser(client_fd, line);
 			checkRegist(client_fd);
 		} else
 		{
-			if (cmds =="PASS") handlePass(client_fd, line);
-			else if (cmds =="NICK") handleNick(client_fd, line);
-			else if (cmds == "USER") handleUser(client_fd, line);
-			else if (cmds == "JOIN") checkCommandJoin(cmd);
-			else if (cmds == "PING") handlePing(client_fd, line);
-			else if (cmds == "MODE") handleMode(client_fd, line);
-			else if (cmds == "TOPIC") checkCommandTopic(cmd);
-			else if (cmds == "MODE") handleMode(client_fd, line);
-			else if (cmds == "KICK") handleKick(client_fd, line);
-			else if (cmds == "INVITE") handleInvite(client_fd, line);
-			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
-			else if (cmds =="PART") checkCommandPart(cmd);
-			else if (cmds =="BOT") checkCommandBot(cmd);
+			if (cmdsCpy =="PASS") handlePass(client_fd, line);
+			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
+			else if (cmdsCpy == "USER") handleUser(client_fd, line);
+			else if (cmdsCpy == "JOIN") checkCommandJoin(cmd);
+			else if (cmdsCpy == "PING") handlePing(client_fd, line);
+			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
+			else if (cmdsCpy == "TOPIC") checkCommandTopic(cmd);
+			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
+			else if (cmdsCpy == "KICK") handleKick(client_fd, line);
+			else if (cmdsCpy == "INVITE") handleInvite(client_fd, line);
+			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
+			else if (cmdsCpy =="PART") checkCommandPart(cmd);
+			else if (cmdsCpy =="BOT") checkCommandBot(cmd);
 		}
 	}
 	user.delete_buffer();
