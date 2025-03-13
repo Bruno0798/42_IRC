@@ -130,20 +130,28 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
             it->second.addClient(client_fd);
         }
     }
+
+	it = _channels.begin();
+	while (it != _channels.end())
+	{
+		if (getLower(it->first) == getLower(channel_name))
+			break;
+		++it;
+	}
 	
 	if (show)
 	{
-		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
+		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + it->first + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
 		
 		if (!std::isprint(getChannelTopic(channel_name)[1]))
 		{
-			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + channel_name + " :No topic is set\r\n";
+			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + it->first + " :No topic is set\r\n";
 			send(_clientFd, msg2.c_str(), msg2.size(), 0);
 		}
 		else
 		{
-			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + channel_name + " :" + getChannelTopic(channel_name) + "\r\n";
+			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + it->first + " :" + getChannelTopic(channel_name) + "\r\n";
 			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
 		}
 		makeUserList(channel_name);
