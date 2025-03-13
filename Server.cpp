@@ -21,58 +21,61 @@ Server::~Server() {
 
 bool Server::fillServerInfo(char *port)
 {
-	char hostname[256];
-	if (gethostname(hostname, sizeof(hostname)) == -1)
-	{
-		perror("gethostname");
-		return false;
-	}
+    char hostname[256];
+    if (gethostname(hostname, sizeof(hostname)) == -1)
+    {
+        perror("gethostname");
+        return false;
+    }
 
-	struct hostent *host = gethostbyname(hostname);
-	if (host == NULL)
-	{
-		perror("gethostbyname");
-		return false;
-	}
+    struct hostent *host = gethostbyname(hostname);
+    if (host == NULL)
+    {
+        perror("gethostbyname");
+        return false;
+    }
 
-	_address.ai_family = AF_UNSPEC;
-	_address.ai_socktype = SOCK_STREAM;
-	_address.ai_flags = AI_PASSIVE;
+    // Print the IP address
+    char ipstr[INET6_ADDRSTRLEN];
+    void *addr;
+    if (host->h_addrtype == AF_INET) {
+        addr = host->h_addr_list[0];
+        inet_ntop(AF_INET, addr, ipstr, sizeof(ipstr));
+    } else {
+        addr = host->h_addr_list[0];
+        inet_ntop(AF_INET6, addr, ipstr, sizeof(ipstr));
+    }
+    std::cout << "IP address: " << ipstr << std::endl;
 
-	int rv = getaddrinfo(host->h_name, port, &_address, &_servinfo);
-	if (rv != 0)
-	{
-		std::cerr << "getaddrinfo error: " << gai_strerror(rv) << std::endl;
-		return false;
-	}
+    // Use localhost for getaddrinfo
+    _address.ai_family = AF_UNSPEC;
+    _address.ai_socktype = SOCK_STREAM;
+    _address.ai_flags = AI_PASSIVE;
 
-	char ipstr[INET6_ADDRSTRLEN];
-	void *addr;
-	if (_servinfo->ai_family == AF_INET) {
-		sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in*>(_servinfo->ai_addr);
-		addr = &(ipv4->sin_addr);
-	} else {
-		sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6*>(_servinfo->ai_addr);
-		addr = &(ipv6->sin6_addr);
-	}
-	inet_ntop(_servinfo->ai_family, addr, ipstr, sizeof(ipstr));
-	std::cout << " ________  _________         _____  _______      ______  " << std::endl;
-	std::cout << "|_   __  ||  _   _  |       |_   _||_   __ \\   .' ___  | " << std::endl;
-	std::cout << "  | |_ \\_||_/ | | \\_|         | |    | |__) | / .'   \\_|" << std::endl;
-	std::cout << "  |  _|       | |             | |    |  __ /  | |        " << std::endl;
-	std::cout << " _| |_       _| |_  _______  _| |_  _| |  \\ \\_\\ `.___.'\\ " << std::endl;
-	std::cout << "|_____|     |_____||_______||_____||____| |___|`.____ .' " << std::endl;
-	std::cout << "                                                         " << std::endl;
+    int rv = getaddrinfo("localhost", port, &_address, &_servinfo);
+    if (rv != 0)
+    {
+        std::cerr << "getaddrinfo error: " << gai_strerror(rv) << std::endl;
+        return false;
+    }
 
-	std::cout << std::endl
-		  << "\t\tServer Information" << std::endl
-		  << std::endl
-		  << "\t" << std::setw(8) << std::left << "IP" << ": " << ipstr << std::endl
-		  << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
-		  << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
-		  << std::endl;
+    std::cout << " ________  _________         _____  _______      ______  " << std::endl;
+    std::cout << "|_   __  ||  _   _  |       |_   _||_   __ \\   .' ___  | " << std::endl;
+    std::cout << "  | |_ \\_||_/ | | \\_|         | |    | |__) | / .'   \\_|" << std::endl;
+    std::cout << "  |  _|       | |             | |    |  __ /  | |        " << std::endl;
+    std::cout << " _| |_       _| |_  _______  _| |_  _| |  \\ \\_\\ `.___.'\\ " << std::endl;
+    std::cout << "|_____|     |_____||_______||_____||____| |___|`.____ .' " << std::endl;
+    std::cout << "                                                         " << std::endl;
 
-	return true;
+    std::cout << std::endl
+        << "\t\tServer Information" << std::endl
+        << std::endl
+        << "\t" << std::setw(8) << std::left << "IP" << ": " << ipstr << std::endl
+        << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
+        << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
+        << std::endl;
+
+    return true;
 }
 
 bool Server::initServer()
@@ -112,8 +115,6 @@ bool Server::initServer()
 void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 {
 	std::map<std::string, Channel>::iterator channel = _channels.begin();
-
-	std::cout << "Server is Running..." << std::endl;
 
 	while (channel != _channels.end())
 	{
