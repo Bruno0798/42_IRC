@@ -65,7 +65,6 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 		return ;
 	}
 	std::getline(lineStream >> std::ws, newTopic);
-	//std::cout << newTopic << std::endl;
 	commandTopic(It->first, newTopic);
 }
 

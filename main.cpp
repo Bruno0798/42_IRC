@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	// Activate signal handler
 	signal(SIGINT, signalHandler);
 	signal(SIGQUIT, signalHandler);
+	signal(SIGPIPE, signalHandler);
 	system("clear");
 
 	int port = check_args(argc, argv);
@@ -48,14 +49,14 @@ int main(int argc, char **argv)
 
 	if (!server.fillServerInfo(argv[1]))
 	{
-		std::cerr << "Failed to fill server info." << std::endl;
+		std::cerr << RED << "Failed to fill server info." << WHITE << std::endl;
 		exit(1);
 	}
 
 	// Initialize and run server
 	if (!server.initServer())
 	{
-		std::cerr << "Server initialization failed." << std::endl;
+		std::cerr << RED << "Server initialization failed." << WHITE << std::endl;
 		exit(1);
 	}
 	server.runServer();

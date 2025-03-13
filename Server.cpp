@@ -27,14 +27,12 @@ bool Server::fillServerInfo(char *port)
         return false;
     }
 
-    struct hostent *host = gethostbyname(hostname);
+    hostent *host = gethostbyname(hostname);
     if (host == NULL)
     {
         perror("gethostbyname");
         return false;
     }
-
-    // Print the IP address
     char ipstr[INET6_ADDRSTRLEN];
     void *addr;
     if (host->h_addrtype == AF_INET) {
@@ -44,8 +42,6 @@ bool Server::fillServerInfo(char *port)
         addr = host->h_addr_list[0];
         inet_ntop(AF_INET6, addr, ipstr, sizeof(ipstr));
     }
-
-    // Use localhost for getaddrinfo
 	memset(&_address, 0, sizeof(_address));
     _address.ai_family = AF_UNSPEC;
     _address.ai_socktype = SOCK_STREAM;
@@ -130,11 +126,11 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 
 void Server::runServer()
 {
-	std::vector<struct pollfd> fds;
-	struct pollfd server_pollfd = {_fd, POLLIN, 0};
+	std::vector<pollfd> fds;
+	pollfd server_pollfd = {_fd, POLLIN, 0};
 	fds.push_back(server_pollfd);
 
-	std::cout << "Server is Running..." << std::endl;
+	std::cout << GREEN << "Server Online!" << WHITE << std::endl;
 
 	while (!shut_down)
 	{
@@ -152,7 +148,7 @@ void Server::runServer()
 				else
 				{
 					if(!handleClientData(fds, i))
-						continue;
+						;
 				}
 			}
 			else if (fds[i].revents & POLLOUT)
@@ -164,30 +160,30 @@ void Server::runServer()
 }
 
 
-void Server::handleNewConnection(std::vector<struct pollfd>& fds)
+void Server::handleNewConnection(std::vector<pollfd>& fds)
 {
-	struct sockaddr_storage client_addr;
+	sockaddr_storage client_addr;
 	socklen_t addr_size = sizeof(client_addr);
-	int client_fd = accept(_fd, (struct sockaddr*)&client_addr, &addr_size);
+	int client_fd = accept(_fd, reinterpret_cast<struct sockaddr*>(&client_addr), &addr_size);
 	if (client_fd == -1)
 	{
 		perror("accept");
 		return;
 	}
 
-	std::cout << "New connection on fd: " << client_fd << std::endl;
+	std::cout << "New Connection on fd: " << client_fd << std::endl;
 
 	Client new_client(client_fd);
 	_clients.push_back(new_client);
 
-	struct pollfd client_pollfd = {client_fd, POLLIN, 0};
+	pollfd client_pollfd = {client_fd, POLLIN, 0};
 	fds.push_back(client_pollfd);
 }
 
-bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
+bool Server::handleClientData(std::vector<pollfd>& fds, size_t i)
 {
 	char buffer[1024];
-	int bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+	const int bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 
 	if (bytes_received <= 0)
 		handleClientDisconnection(fds, i, bytes_received, "Has left");
@@ -203,11 +199,10 @@ bool Server::handleClientData(std::vector<struct pollfd>& fds, size_t i)
 	return true;
 }
 
-void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received, const std::string &leaveMsg)
+void Server::handleClientDisconnection(std::vector<pollfd>& fds, size_t i, int bytes_received, const std::string &leaveMsg)
 {
 	if (bytes_received == 0)
 	{
-		//leave all channels
 		removeClientsFromChannels(fds[i].fd, leaveMsg);
 		std::cout << "Client disconnected: " << fds[i].fd << std::endl;
 	}
@@ -219,7 +214,7 @@ void Server::handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i
 	--i;
 }
 
-void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
+void Server::handleClientWrite(std::vector<pollfd>& fds, size_t i)
 {
 	Client &user = _clients.at(i - 1);
 	std::istringstream check(user.getBuffer());
@@ -234,7 +229,7 @@ void Server::handleClientWrite(std::vector<struct pollfd>& fds, size_t i)
 	}
 }
 
-void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
+void Server::handleClientError(std::vector<pollfd>& fds, size_t i)
 {
 	std::cerr << "Error on fd: " << fds[i].fd << std::endl;
 	close(fds[i].fd);
@@ -243,64 +238,8 @@ void Server::handleClientError(std::vector<struct pollfd>& fds, size_t i)
 	--i;
 }
 
-//
-//void Server::parseClientInfo(Client &user, int client_fd)
-//{
-//	std::istringstream iss(user.getBuffer());
-//	std::string token;
-//	std::string nickname, username, password;
-//
-//	while (iss >> token)
-//	{
-//		if (token == "PASS")
-//		{
-//			iss >> password;
-//			handlePass(client_fd, user.getBuffer());
-//		}
-//		if (token == "NICK")
-//		{
-//			iss >> nickname;
-//			handleNick(client_fd, user.getBuffer());
-//		}
-//		if (token == "USER")
-//		{
-//			iss >> username;
-//			handleUser(client_fd, user.getBuffer());
-//		}
-//	}
-//
-//	std::cout << "Parsed nickname: " << nickname << ", username: " << username << ", password: " << password << std::endl;
-//
-//	// Find the client and update its information
-//	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-//	if (client_it != _clients.end())
-//	{
-//		if (!nickname.empty())
-//			client_it->setNickname(nickname);
-//		if (!username.empty())
-//			client_it->setUserName(username);
-//		if (!password.empty())
-//			client_it->setPassword(password);
-//
-//		std::cout << "Nickname: "<< client_it->getNickname()  << std::endl;
-//		std::cout << "UserName: "<< client_it->getUsername()  << std::endl;
-//		std::cout << "Password: "<< client_it->getPassword()  << std::endl;
-//
-//		if (client_it->getPassword() == _password && !user.isAuth())
-//		{
-//			client_it->setAuth(true);
-//			std::cout << "Client authenticated for fd: " << client_fd << std::endl;
-//		}
-//		else
-//			std::cerr << "Invalid password for fd: " << client_fd << std::endl;
-//	}
-//	else
-//		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-//}
-
 void Server::welcome_messages(int client_fd)
 {
-	// Find the client associated with the given fd
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it == _clients.end())
 	{

@@ -32,10 +32,6 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	iss >> cmd >> targets;
 	std::getline(iss, msg);
 
-	std::cout << "Debug: PRIVMSG: CMD: " << cmd << std::endl;
-	std::cout << "Debug: PRIVMSG: targets: " << targets << std::endl;
-	std::cout << "Debug: PRIVMSG: msg: " << msg << "d" << std::endl;
-
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (targets.empty())
 	{
@@ -49,29 +45,22 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
-
-	// Remove leading colon from the message
 	if (msg[0] == ':')
 		msg = msg.substr(1);
-
 	std::vector<std::string> targetList;
 	std::istringstream targetStream(targets);
 	std::string target;
 	while (std::getline(targetStream, target, ','))
 		targetList.push_back(target);
-
 	std::string response;
 	if (client_it != _clients.end())
 		response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG ";
 	else
 		response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
-
 	for (std::vector<std::string>::iterator target_it = targetList.begin(); target_it != targetList.end(); ++target_it)
 	{
 		std::string target = *target_it;
 		std::string fullResponse = response + target + msg + "\r\n";
-
-		// Check if the target is a channel
 		std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
 		if (channel_it != _channels.end())
 		{
@@ -83,7 +72,6 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 				send(client_fd, errorResponse.c_str(), errorResponse.size(), 0);
 				continue;
 			}
-
 			for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
 			{
 				if (it->first != client_fd)

@@ -52,7 +52,6 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmdsCpy == "PING") handlePing(client_fd, line);
 			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
 			else if (cmdsCpy == "TOPIC") checkCommandTopic(cmd);
-			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
 			else if (cmdsCpy == "KICK") handleKick(client_fd, line);
 			else if (cmdsCpy == "INVITE") handleInvite(client_fd, line);
 			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
