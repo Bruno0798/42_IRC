@@ -38,13 +38,18 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 
 	std::cout << "Debug: PRIVMSG: CMD: " << cmd << std::endl;
 	std::cout << "Debug: PRIVMSG: targets: " << targets << std::endl;
-	std::cout << "Debug: PRIVMSG: msg: " << msg << std::endl;
-
+	std::cout << "Debug: PRIVMSG: msg: " << msg << "d" << std::endl;
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (targets.empty())
 	{
 		std::string response = ":localhost 411 " + client_it->getNickname() + ":No recipient given PRIVMSG\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
+		return;
+	}
+	if (msg.empty())
+	{
+		std::string response = ":localhost 412 " + client_it->getNickname() + ":No text to send\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
@@ -67,13 +72,21 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 
 	for (const std::string& target : targetList)
 	{
-		std::string fullResponse = response + target + " :" + msg + "\r\n";
+		std::string fullResponse = response + target + msg + "\r\n";
 
 		// Check if the target is a channel
 		std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
 		if (channel_it != _channels.end())
 		{
 			const Channel& channel = channel_it->second;
+			std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().find(client_fd);
+			if (it == channel.getClients().end())
+			{
+				std::string errorResponse = ":localhost 404 " + client_it->getNickname() + " " + target + " :Cannot send to channel\r\n";
+				send(client_fd, errorResponse.c_str(), errorResponse.size(), 0);
+				continue;
+			}
+
 			for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
 			{
 				if (it->first != client_fd)
