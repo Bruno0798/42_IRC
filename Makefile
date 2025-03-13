@@ -9,7 +9,7 @@ SRC_bonus += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/
 
 OBJ = $(SRC:.cpp=.o)
 
-OBJ_bonus = $(SRC:.cpp=.o)
+OBJ_bonus = $(SRC_bonus:.cpp=.o)
 
 CFLAGS = -Wall -Werror -Wextra
 CFLAGS = -std=c++98
@@ -22,18 +22,28 @@ $(NAME): $(OBJ)
 %.o: %.cpp
 	c++ $(CFLAGS) -c $< -o $@
 
-$(NAME_BONUS): $(BONUS_OBJS)
+bonus: $(NAME_bonus)
+
+$(NAME_bonus): $(OBJ_bonus)
 		c++ -o $(NAME_bonus) $(OBJ_bonus)
+%.o: %.cpp
+	c++ $(CFLAGS) -c $< -o $@
 
 go: re
 	clear
 	./ircserv 6667 ola
 
+bonusgo: bonus
+		clear
+		./ircserv_bonus 6667 ola
+
 clean:
 		rm -rf $(OBJ)
+		rm -rf $(OBJ_bonus)
 
 fclean: clean
 		rm -f $(NAME)
+		rm -f $(NAME_bonus)
 
 re: fclean all
 
