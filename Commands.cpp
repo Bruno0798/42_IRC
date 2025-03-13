@@ -57,7 +57,6 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmdsCpy == "INVITE") handleInvite(client_fd, line);
 			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmdsCpy =="PART") checkCommandPart(cmd);
-			else if (cmdsCpy =="BOT") checkCommandBot(cmd);
 		}
 	}
 	user.delete_buffer();
