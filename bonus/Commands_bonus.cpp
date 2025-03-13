@@ -1,7 +1,7 @@
-#include "Irc.hpp"
-#include "Client.hpp"
-#include "Server.hpp"
-#include "Channel.hpp"
+#include "../Irc.hpp"
+#include "../Client.hpp"
+#include "../Server.hpp"
+#include "../Channel.hpp"
 
 void Server::checkRegist(int client_fd)
 {
@@ -54,6 +54,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmds == "INVITE") handleInvite(client_fd, line);
 			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmds =="PART") checkCommandPart(cmd);
+			else if (cmds =="BOT") checkCommandBot(cmd);
 		}
 	}
 	user.delete_buffer();
