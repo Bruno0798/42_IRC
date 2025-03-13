@@ -41,7 +41,15 @@ void Server::checkCommandBot(std::istringstream &lineStream)
 	
 	if (channel.empty())
 	{
-		std::string errMsg = ":ircserver 461 " + channel + " :Not enough parameters\r\n";
+		std::string errMsg = "BOT usage: /BOT <channelName> ORDER\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		errMsg = "ORDERs: join , part , talk\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		errMsg = "join: Joins a channel\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		errMsg = "part: Parts a channel\r\n";
+		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		errMsg = "talk: Well...it talks\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
