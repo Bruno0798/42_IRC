@@ -29,7 +29,7 @@ $(NAME_bonus): $(OBJ_bonus)
 %.o: %.cpp
 	c++ $(CFLAGS) -c $< -o $@
 
-go: re
+go: all
 	clear
 	./ircserv 6667 ola
 
