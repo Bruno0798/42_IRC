@@ -44,7 +44,7 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 	lineStream >> lock;
 	if (channels.empty())
 	{
-		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
+		std::string errMsg = ":localhost 461 " + channels + " :Not enough parameters\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
@@ -80,7 +80,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 {
 	if (channel_name[0] != '#')
 	{
-		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
+		std::string errMsg = ":localhost 461 " + channel_name + " :Invalid channel name\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return;
 	}
@@ -100,13 +100,11 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
     if (it == _channels.end()) 
     {
-        // Criar um novo canal se ele não existir
         Channel new_channel(channel_name);
         new_channel.addClient(client_fd);
         _channels[channel_name] = new_channel;
         _channels[channel_name].setTopic("Great topic bro!");
         _channels[channel_name].addOperator(client_fd);
-        //std::cout << "Created and joined new channel: " << channel_name << std::endl;
     } 
     else 
     {
