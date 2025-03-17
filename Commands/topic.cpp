@@ -1,6 +1,7 @@
 #include "../Irc.hpp"
 #include "../Server.hpp"
 #include "../Client.hpp"
+#include <cctype>
 
 /**
  * @brief Command : TOPIC <channel> [<topic>]
@@ -67,29 +68,41 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	}
 
 	//std::getline(lineStream >> std::ws, newTopic);
-	newTopic = getFullMsg(newTopic, lineStream);
+	if (newTopic[0] == ':' && newTopic.size() == 1)
+	{
+		commandTopic(It->first, newTopic);
+		return;;
+	}
+	else
+		newTopic = getFullMsg(newTopic, lineStream);
 	commandTopic(It->first, newTopic);
 }
 
 void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 {
-	if (newTopic.empty() || newTopic[0] == ' ' )
+	std::cout << "new topic is: "<< newTopic << std::endl;
+	std::string topicMsg;
+
+	if (newTopic.empty() || !std::isprint(newTopic[0]))
 	{
 		std::string topic = getChannelTopic(channelName);
 		if (topic.empty())
+		{
 			topic = "No topic is set";
-		std::string topicMsg = ":localhost 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
+			topicMsg = ":localhost 331 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
+		}
+		else	
+			topicMsg = ":localhost 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
 		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
 		return ;
 	}
+	std::cout << "new topic is: "<< newTopic << std::endl;
+	if (newTopic[0] == ':')
+		newTopic = "";
 
 	std::map<std::string, Channel>::iterator It = _channels.find(channelName);
 	if (!It->second.isTopicRestricted() || It->second.isOperator(_clientFd))
 	{
-		if (newTopic[0] == ':')
-			newTopic.erase(0,1);
-		if (newTopic[0] == ':')
-			newTopic.erase(0,1);
 		std::string topicChange = ":" + getClient(_clientFd)->getNickname() + "!" + getClient(_clientFd)->getUsername()+ "@localhost TOPIC " + It->first + " :" + newTopic + "\r\n";
 		broadcastMessageToChannel(topicChange, channelName);
 		changeChannelTopic(channelName, newTopic);

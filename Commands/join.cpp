@@ -113,16 +113,16 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         int join_status = it->second.canJoin(client_fd, pass);
         if (join_status == 471)
 		{
-            send(client_fd, (":ircserver 471 " + channel_name + " :Channel is full\r\n").c_str(), 39, 0);
+            send(client_fd, (":ircserver 471 " + it->first + " :Channel is full\r\n").c_str(), 39, 0);
 			return;
 		}
         else if (join_status == 473){
-            send(client_fd, (":ircserver 473 " + channel_name + " :Invite only channel\r\n").c_str(), 44, 0);
+            send(client_fd, (":ircserver 473 " + it->first + " :Invite only channel\r\n").c_str(), 44, 0);
 
 			return;
 		}
         else if (join_status == 475){
-            send(client_fd, (":ircserver 475 " + channel_name + " :Incorrect channel key\r\n").c_str(), 47, 0);
+            send(client_fd, (":ircserver 475 " + it->first + " :Incorrect channel key\r\n").c_str(), 47, 0);
 			return;
 		}
         else 
@@ -144,7 +144,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";
 		send(_clientFd, response.c_str(), response.size(), 0);
 		
-		if (!std::isprint(getChannelTopic(channel_name)[1]))
+		if (getChannelTopic(channel_name).empty())
 		{
 			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + it->first + " :No topic is set\r\n";
 			send(_clientFd, msg2.c_str(), msg2.size(), 0);
