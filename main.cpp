@@ -7,7 +7,7 @@ int check_args(int argc, char **argv)
 {
 	if (argc != 3)
 	{
-		std::cerr << "Correct usage is ./ircserv [port] [password] :)" << std::endl;
+		std::cerr << RED << "Correct usage is ./ircserv [port] [password] :)" << WHITE << std::endl;
 		exit(1);
 	}
 
@@ -16,12 +16,12 @@ int check_args(int argc, char **argv)
 
 	if (*endPtr != '\0')
 	{
-		std::cerr << "Port is not a valid number" << std::endl;
+		std::cerr << RED << "Port is not a valid number" << WHITE << std::endl;
 		exit(1);
 	}
 	if (num < 1024 || num > 65535)
 	{
-		std::cerr << "Port number invalid. Use a number between 1024 and 65535." << std::endl;
+		std::cerr << RED << "Port number invalid. Use a number between 1024 and 65535." << WHITE << std::endl;
 		exit(1);
 	}
 

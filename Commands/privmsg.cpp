@@ -30,37 +30,52 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	std::istringstream iss(message);
 	std::string cmd, targets, msg;
 	iss >> cmd >> targets;
-	std::getline(iss, msg);
+
+	if (iss.peek() == ' ') // Ignore leading space
+		iss.get();
+	if (iss.peek() == ':') // Check if full message is provided
+	{
+		iss.get(); // Remove ':'
+		std::getline(iss, msg); // Get the entire message
+	}
+	else
+		iss >> msg; // Get only the first word
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (targets.empty())
 	{
-		std::string response = ":localhost 411 " + client_it->getNickname() + ":No recipient given PRIVMSG\r\n";
+		std::string response = ":localhost 411 " + client_it->getNickname() + " :No recipient given PRIVMSG\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
 	if (msg.empty())
 	{
-		std::string response = ":localhost 412 " + client_it->getNickname() + ":No text to send\r\n";
+		std::string response = ":localhost 412 " + client_it->getNickname() + " :No text to send\r\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		return;
 	}
-	if (msg[0] == ':')
-		msg = msg.substr(1);
+
 	std::vector<std::string> targetList;
 	std::istringstream targetStream(targets);
 	std::string target;
 	while (std::getline(targetStream, target, ','))
 		targetList.push_back(target);
+
 	std::string response;
 	if (client_it != _clients.end())
 		response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG ";
 	else
+	{
 		response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
+		send(client_fd, response.c_str(), response.size(), 0);
+		return;
+	}
+
 	for (std::vector<std::string>::iterator target_it = targetList.begin(); target_it != targetList.end(); ++target_it)
 	{
 		std::string target = *target_it;
-		std::string fullResponse = response + target + msg + "\r\n";
+		std::string fullResponse = response + target + " :" + msg + "\r\n";
+
 		std::map<std::string, Channel>::iterator channel_it = _channels.find(target);
 		if (channel_it != _channels.end())
 		{
@@ -92,3 +107,4 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		}
 	}
 }
+
