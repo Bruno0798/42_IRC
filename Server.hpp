@@ -45,6 +45,7 @@ class Server
 
 
 		//------------- COMMANDS --------------- //
+		std::string sendMessage(std::string &buff);
 		void handleCommand(Client &user, int client_fd);
 		void handleNick(int client_fd, const std::string& message);
 		void handlePass(int client_fd, const std::string& message);

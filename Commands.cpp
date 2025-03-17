@@ -26,7 +26,7 @@ void Server::handleCommand(Client& user, int client_fd)
 		std::string cmdsCpy = cmds;
 		std::transform(cmdsCpy.begin(), cmdsCpy.end(), cmdsCpy.begin(), ::toupper);
 		std::cout << GREEN << "RECEIVED:" << line << WHITE << std::endl;
-		if(cmds == "CAP" || cmds == "WHO")
+		if(cmdsCpy == "CAP" || cmds == "WHO")
 			;
 		else if(!user.isAuth())
 		{
@@ -56,6 +56,11 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmdsCpy == "INVITE") handleInvite(client_fd, line);
 			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmdsCpy =="PART") checkCommandPart(cmd);
+			else
+			{
+				std::string errMsg = ":localhost 421 " + cmds + ":Unknown commands\r\n";
+				send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+			}
 		}
 	}
 	user.delete_buffer();
@@ -271,7 +276,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                     }
                     applied_modes += (adding ? "+k" : "-k");
                     break;
-                case 'l': // User limit
+                case 'l':
                     if (adding)
                     {
                         iss >> extra_param;

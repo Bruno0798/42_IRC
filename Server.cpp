@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
+#include "numerical_replies.hpp"
 
 Server::Server() {}
 
@@ -239,6 +240,10 @@ void Server::handleClientError(std::vector<pollfd>& fds, size_t i)
 	--i;
 }
 
+std::string Server::sendMessage(std::string &buff)
+{
+	return buff;
+}
 void Server::welcome_messages(int client_fd)
 {
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
@@ -249,17 +254,12 @@ void Server::welcome_messages(int client_fd)
 	}
 
 	Client &user = *client_it;
-	std::string welcome = ":localhost 001 " + user.getNickname() + " :Welcome to the IRC server\r\n";
-	std::string yourHost = ":localhost 002 " + user.getNickname() + " :Your host is localhost, running version 1.0\r\n";
-	std::string created = ":localhost 003 " + user.getNickname() + " :This server was created today\r\n";
-	std::string myInfo = ":localhost 004 " + user.getNickname() + " localhost 1.0 o o\r\n";
-	std::string serverNotice = ":localhost 005 " + user.getNickname() + " :Please note that this server is for testing purposes only\r\n";
 
-	send(user.getFd(), welcome.c_str(), welcome.size(), 0);
-	send(user.getFd(), yourHost.c_str(), yourHost.size(), 0);
-	send(user.getFd(), created.c_str(), created.size(), 0);
-	send(user.getFd(), myInfo.c_str(), myInfo.size(), 0);
-	send(user.getFd(), serverNotice.c_str(), serverNotice.size(), 0);
+	send(user.getFd(), RPL_WELCOME(user.getNickname(),user.getUsername()).c_str(), RPL_WELCOME(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_YOURHOST(user.getNickname(),user.getUsername()).c_str(), RPL_YOURHOST(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_CREATED(user.getNickname(),user.getUsername()).c_str(), RPL_CREATED(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_MYINFO(user.getNickname(),user.getUsername()).c_str(), RPL_MYINFO(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).c_str(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).size(), 0);
 }
 
 std::string Server::getPass()

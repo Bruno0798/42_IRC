@@ -48,14 +48,14 @@ fclean: clean
 re: fclean all
 
 # Leaks/Valgrind test target
-leaks: $(NAME)
+leaks: re
 ifeq ($(OS), Darwin)
 	leaks -atExit -- ./$(NAME) 6667 ola
 else
 	valgrind --leak-check=full --track-origins=yes ./$(NAME) 6667 ola
 endif
 
-lekas: $(NAME)
+lekas: re
 ifeq ($(OS), Darwin)
 	leaks -atExit -- ./$(NAME) 6667 ola
 else

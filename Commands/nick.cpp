@@ -38,7 +38,7 @@
 
 bool isNicknameValid(const std::string& nickname)
 {
-	const std::string invalidChars = " ,*?!@.";
+	const std::string invalidChars = " ,*?!@.:#";
 	if (nickname.empty() || invalidChars.find(nickname[0]) != std::string::npos)
 		return false;
 	for (std::string::const_iterator it = nickname.begin(); it != nickname.end(); ++it)
