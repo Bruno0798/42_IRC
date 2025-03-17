@@ -3,11 +3,16 @@
 #include "../Server.hpp"
 #include <cctype>
 
-void Server::commandQuit(std::vector<struct pollfd>& fds, size_t i, std::string &msg)
+void Server::commandQuit(std::vector<struct pollfd>& fds, size_t i, std::istringstream &msg)
 {
-	if (!std::isprint(msg[1]))
+	std::string reason;
+	msg >> reason;
+
+	reason = getFullMsg(reason, msg);
+
+	if (!std::isprint(reason[1]))
 		handleClientDisconnection(fds, i, 0, "Has left");
 	else
-		handleClientDisconnection(fds, i, 0, msg);
+		handleClientDisconnection(fds, i, 0, reason);
 }
 
