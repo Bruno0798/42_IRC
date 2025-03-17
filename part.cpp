@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   channelControl.cpp                                 :+:      :+:    :+:   */
+/*   part.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/13 14:01:12 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/17 11:22:28 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,8 @@ void Server::commandPart(std::string &channelName, const std::string &msg)
 
 	if (It->second.getClients().empty())
 		_channels.erase(It->first);
-		
+	
+	
 	//std::cout << "LEAVE CHANNEL" << It->first <<"\n";
 }
 

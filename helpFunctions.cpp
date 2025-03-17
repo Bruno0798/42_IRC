@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/13 14:02:02 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/17 11:02:17 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void Server::makeUserList(std::string channel_name)
 			if (channel.isOperator(It->first))
 				nameList += "@";
 			if (It->first == 424242)
-				nameList+= "StepBro ";
+				nameList+= "Comrade ";
 			else
 				nameList+= getClient(It->first)->getNickname() + " ";
 		}

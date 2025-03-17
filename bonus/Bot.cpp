@@ -25,7 +25,7 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 		send(_clientFd, errorMsg.c_str(), errorMsg.size(), 0);
 		return;
 	}
-	std::string response = ":StepBro!StepBro@localhost JOIN " + channel_name + "\r\n";
+	std::string response = ":Comrade!Comrade@localhost JOIN " + channel_name + "\r\n";
 
 	makeUserList(channel_name);
 
@@ -62,41 +62,49 @@ void Server::checkCommandBot(std::istringstream &lineStream)
 
 void Server::commandBot(std::string &channelName, const std::string &msg)
 {
-	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
-	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
+	std::map<std::string, Channel>::iterator channel = _channels.begin();
+	while (channel != _channels.end())
+	{
+		if (getLower(channel->first) == getLower(channelName))
+			break;
+		++channel;
+	}
+
+	if (channelName.empty()|| channelName[0] != '#' || channel == _channels.end())
 	{
 		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
 	bool inChannel = LookBotInChannel(channelName);
+	
 	if (msg == "join" && !inChannel)
 	{
 		//std::cout << "Bot vai dar join "  << std::endl;
-		JoinBot(424242, channelName);
+		JoinBot(424242, channel->first);
 		return;
 	}
 	if (!inChannel)
 	{
-		std::string errMsg = ":localhost 442 " + channelName + " :BOT is not in the channel!\r\n";
+		std::string errMsg = ":localhost 442 " + channel->first + " :BOT is not in the channel!\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-	else if (msg == "part" && It->second.isOperator(_clientFd))
+	else if (msg == "part" && channel->second.isOperator(_clientFd))
 	{
 		//std::cout << "Bot vai dar part "  << std::endl;
-		PartBot(channelName);
+		PartBot(channel->first);
 		return;
 	}
 	else if (msg == "talk")
 	{
 		//std::cout << "Bot vai falar "  << std::endl;
-		PrivmsgBot(channelName, getMsg());
+		PrivmsgBot(channel->first, getMsg());
 		return;
 	}
 }
 
-void Server::PartBot(std::string &channelName)
+void Server::PartBot(const std::string &channelName)
 {
 	std::map<std::string, Channel >::iterator It = _channels.find(channelName);
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
@@ -113,7 +121,7 @@ void Server::PartBot(std::string &channelName)
 		return ;
 	}
 	std::string msg = "Have a nice day :D";
-	std::string leaveMsg = ":StepBro!StepBro@localhost PART " + channelName + " " + msg +"\r\n";
+	std::string leaveMsg = ":Comrade!Comrade@localhost PART " + channelName + " " + msg +"\r\n";
 	It->second.removeClient(424242);
 	makeUserList(channelName);
 	
@@ -124,7 +132,7 @@ void Server::PrivmsgBot(const std::string& channel, const std::string& msg)
 {
 	std::string response = ":";
 
-	response += ":StepBro!StepBro@localhost PRIVMSG " + channel + " :" + msg + "\r\n";
+	response += ":Comrade!Comrade@localhost PRIVMSG " + channel + " :" + msg + "\r\n";
 	std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
 	if (channel_it != _channels.end())
 	{
@@ -144,15 +152,13 @@ std::string Server::getMsg()
 	std::vector<std::string> msgs(7);
 
 	msgs[0] = "Ducking the ruber duck";
-	msgs[1] = "yo";
-	msgs[2] = "Make lekaaaaaaaaaaaaaaaaas!";
-	msgs[3] = "Vai ser com o pe que esta mais a mao";
-	msgs[4] = "Na boa bro o IRC e facil";
-	msgs[5] = "The cake is a lie";
-	msgs[6] = "Oh a waching machine";
+	msgs[1] = "Make lekaaaaaaaaaaaaaaaaas!";
+	msgs[2] = "Na boa bro o IRC e facil";
+	msgs[3] = "The cake is a lie";
+	msgs[4] = "The server is ours comrade!";
 
 	std::srand(std::time(0)); // Seed the random number generator
-    int msg = std::rand() % 6;
+    int msg = std::rand() % 5;
 	
 	//std::cout << "coord is:"<<msg << std::endl;
 	return msgs[msg];
