@@ -23,38 +23,39 @@ void Server::handleCommand(Client& user, int client_fd)
 	{
 		std::istringstream cmd(line);
 		cmd >> cmds;
-		//std::cout << "DEBUG: CMD: " + line << std::endl << std::endl;
+		std::string cmdsCpy = cmds;
+		std::transform(cmdsCpy.begin(), cmdsCpy.end(), cmdsCpy.begin(), ::toupper);
+		std::cout << GREEN << "RECEIVED:" << line << WHITE << std::endl;
 		if(cmds == "CAP" || cmds == "WHO")
 			;
 		else if(!user.isAuth())
 		{
-			if (cmds == "PASS") handlePass(client_fd, line);
+			if (cmdsCpy == "PASS") handlePass(client_fd, line);
 			else
 			{
+				std::cout << RED << "ERROR: NOT AUTHENTICATED" << WHITE << std::endl;
 				std::string response = ":localhost 451 :You have not authenticated\r\n";
 				send(client_fd, response.c_str(), response.size(), 0);
 			}
 		} else if(!user.isRegistered())
 		{
-			if (cmds == "PASS") handlePass(client_fd, line);
-			else if (cmds =="NICK") handleNick(client_fd, line);
-			else if (cmds == "USER") handleUser(client_fd, line);
+			if (cmdsCpy == "PASS") handlePass(client_fd, line);
+			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
+			else if (cmdsCpy == "USER") handleUser(client_fd, line);
 			checkRegist(client_fd);
 		} else
 		{
-			if (cmds =="PASS") handlePass(client_fd, line);
-			else if (cmds =="NICK") handleNick(client_fd, line);
-			else if (cmds == "USER") handleUser(client_fd, line);
-			else if (cmds == "JOIN") checkCommandJoin(cmd);
-			else if (cmds == "PING") handlePing(client_fd, line);
-			else if (cmds == "MODE") handleMode(client_fd, line);
-			else if (cmds == "TOPIC") checkCommandTopic(cmd);
-			else if (cmds == "MODE") handleMode(client_fd, line);
-			else if (cmds == "KICK") handleKick(client_fd, line);
-			else if (cmds == "INVITE") handleInvite(client_fd, line);
-			else if (cmds =="PRIVMSG") handlePrivmsg(client_fd, line);
-			else if (cmds =="PART") checkCommandPart(cmd);
-			else if (cmds =="BOT") checkCommandBot(cmd);
+			if (cmdsCpy =="PASS") handlePass(client_fd, line);
+			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
+			else if (cmdsCpy == "USER") handleUser(client_fd, line);
+			else if (cmdsCpy == "JOIN") checkCommandJoin(cmd);
+			else if (cmdsCpy == "PING") handlePing(client_fd, line);
+			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
+			else if (cmdsCpy == "TOPIC") checkCommandTopic(cmd);
+			else if (cmdsCpy == "KICK") handleKick(client_fd, line);
+			else if (cmdsCpy == "INVITE") handleInvite(client_fd, line);
+			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
+			else if (cmdsCpy =="PART") checkCommandPart(cmd);
 		}
 	}
 	user.delete_buffer();
@@ -62,7 +63,8 @@ void Server::handleCommand(Client& user, int client_fd)
 
 int Server::getClientFdByName(const std::string& nickname) {
 	for (std::vector<Client>::iterator clientIt = _clients.begin(); clientIt != _clients.end(); ++clientIt) {
-		if (clientIt->getNickname() == nickname) {
+		if (clientIt->getNickname() == nickname)
+		{
 			return clientIt->getFd();
 		}
 	}
@@ -108,11 +110,11 @@ void Server::handleWho(int client_fd, const std::string& message)
 void Server::handleKick(int client_fd, const std::string& message)
 {
     std::istringstream iss(message);
-    std::string cmd, channel, target, reason;
-    iss >> cmd >> channel >> target;
+    std::string cmd, channel, targets, reason;
+    iss >> cmd >> channel >> targets;
     std::getline(iss, reason);
 
-    if (channel.empty() || target.empty())
+    if (channel.empty() || targets.empty())
     {
         std::string error = ":localhost 461 KICK :Not enough parameters\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
@@ -135,15 +137,22 @@ if (!channel_it->second.isOperator(client_fd))
 std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 if (kicker == _clients.end())
     return;
+std::istringstream targets_stream(targets);
+    std::string target;
+
+    while (std::getline(targets_stream, target, ','))
+    {
     try {
         int target_fd = getClientFdByName(target);
-        if (reason.empty())
-            reason = " :No reason given";
-        else if (reason[0] == ':')
-            reason = reason.substr(1);
+        if (!reason.empty() && reason[0] == ' ')
+                reason = reason.substr(1);
+            if (reason.empty())
+                reason = ":" + kicker->getNickname();
+            else if (reason[0] != ':')
+                reason = ":" + reason;
 
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                             "@localhost KICK " + channel + " " + target + "\r\n";
+                             "@localhost KICK " + channel + " " + target + " " + reason + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
 		channel_it->second.revokePermissions(target_fd);
@@ -153,6 +162,7 @@ if (kicker == _clients.end())
         std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
     }
+}
 }
 
 void Server::handleMode(int client_fd, const std::string& message)
