@@ -31,7 +31,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-
+	
 	msg = getFullMsg(msg, lineStream);
 
 	std::stringstream channelStream(channels);

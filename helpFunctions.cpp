@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/17 12:33:35 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/17 20:45:45 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,13 +99,9 @@ std::string getFullMsg(std::string &msg, std::istringstream &lineStream)
 {
 	if (msg[0] == ':')
 	{
-		std::string next;
-		lineStream >> next;
-		
 		msg.erase(0,1);
-		std::stringstream msgStream(next);
 		std::string nextWord;
-		while (std::getline(msgStream, nextWord, ' '))
+		while (lineStream >> nextWord)
 		{
 			msg += " ";
 			msg += nextWord;
