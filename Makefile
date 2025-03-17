@@ -54,3 +54,10 @@ ifeq ($(OS), Darwin)
 else
 	valgrind --leak-check=full --track-origins=yes ./$(NAME) 6667 ola
 endif
+
+lekas: $(NAME)
+ifeq ($(OS), Darwin)
+	leaks -atExit -- ./$(NAME) 6667 ola
+else
+	valgrind --leak-check=full --track-origins=yes ./$(NAME) 6667 ola
+endif
