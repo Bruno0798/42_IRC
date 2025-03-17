@@ -7,7 +7,7 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 {
 	if (channel_name[0] != '#')
 	{
-		std::string errMsg = ":ircserver 461 " + channel_name + " :Invalid channel name\r\n";
+		std::string errMsg = ":localhost 461 " + channel_name + " :Invalid channel name\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return;
 	}

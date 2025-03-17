@@ -24,7 +24,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 
 	if (channels.empty())
 	{
-		std::string errMsg = ":ircserver 461 " + channels + " :Not enough parameters\r\n";
+		std::string errMsg = ":localhost 461 " + channels + " :Not enough parameters\r\n";
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
