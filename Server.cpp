@@ -267,3 +267,11 @@ std::string Server::getPass()
 	return _password;
 }
 
+bool Server::checkUserExists(const std::string& nickname) const{
+	for (size_t i = 0; i < _clients.size(); ++i)
+	{
+		if (_clients[i].getNickname() == nickname)
+			return true;
+	}
+	return false;
+}

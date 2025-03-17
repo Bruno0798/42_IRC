@@ -116,8 +116,7 @@ void Server::handleKick(int client_fd, const std::string& message)
 {
     std::istringstream iss(message);
     std::string cmd, channel, targets, reason;
-    iss >> cmd >> channel >> targets;
-    std::getline(iss, reason);
+    iss >> cmd >> channel >> targets >> reason;
 
     if (channel.empty() || targets.empty())
     {
@@ -125,50 +124,81 @@ void Server::handleKick(int client_fd, const std::string& message)
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
-    // Find the channel
-    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
+	
+    std::map<std::string, Channel>::iterator channel_it = _channels.begin();
+    while (channel_it != _channels.end())
+    {
+        if (getLower(channel_it->first) == getLower(channel))
+            break;
+        ++channel_it;
+    }
+	
     if (channel_it == _channels.end())
     {
         std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
-if (!channel_it->second.isOperator(client_fd))
-{
-    std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
-    send(client_fd, error.c_str(), error.length(), 0);
-    return;
-}
-std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-if (kicker == _clients.end())
-    return;
-std::istringstream targets_stream(targets);
+
+    if (!channel_it->second.isOperator(client_fd))
+    {
+        std::string error = ":localhost 482 " + channel + " :You're not channel operator\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
+
+    std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
+    if (kicker == _clients.end())
+        return;
+
+    std::istringstream targets_stream(targets);
     std::string target;
 
     while (std::getline(targets_stream, target, ','))
     {
-    try {
-        int target_fd = getClientFdByName(target);
+        int target_fd = -1;
+		std::vector<Client>::iterator it = _clients.begin();
+        while (it != _clients.end())
+        {
+            if (getLower(it->getNickname()) == getLower(target))
+            {
+                target_fd = it->getFd();
+                break;
+            }
+			++it;
+        }
+
+        if (target_fd == -1)
+        {
+            std::string error = target + " :No such nick\r\n";
+            send(client_fd, error.c_str(), error.length(), 0);
+            continue;
+        }
+
+        if (!channel_it->second.isUserInChannel(target_fd))
+        {
+            std::string error = target + " " + channel + " :They aren't on that channel\r\n";
+            send(client_fd, error.c_str(), error.length(), 0);
+            continue;
+        }
+
         if (!reason.empty() && reason[0] == ' ')
-                reason = reason.substr(1);
-            if (reason.empty())
-                reason = ":" + kicker->getNickname();
-            else if (reason[0] != ':')
-                reason = ":" + reason;
+            reason = reason.substr(1);
+        if (reason.empty())
+            reason = ":" + kicker->getNickname();
+        else if (reason[0] != ':')
+            reason = ":" + reason;
 
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                             "@localhost KICK " + channel + " " + target + " " + reason + "\r\n";
+                               "@localhost KICK " + channel + " " + it->getNickname() + " " + reason + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
-		channel_it->second.revokePermissions(target_fd);
+
+        channel_it->second.revokePermissions(target_fd);
         channel_it->second.removeClient(target_fd);
     }
-    catch (const std::runtime_error& e) {
-        std::string error = ":localhost 441 " + target + " " + channel + " :They aren't on that channel\r\n";
-        send(client_fd, error.c_str(), error.length(), 0);
-    }
 }
-}
+
 
 void Server::handleMode(int client_fd, const std::string& message)
 {
@@ -183,8 +213,14 @@ void Server::handleMode(int client_fd, const std::string& message)
         return;
     }
 
-    // Find the channel
-    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
+    std::map<std::string, Channel>::iterator channel_it = _channels.begin();
+    while (channel_it != _channels.end())
+    {
+        if (getLower(channel_it->first) == getLower(channel))
+            break;
+        ++channel_it;
+    }
+
     if (channel_it == _channels.end())
     {
         std::string error = ":localhost 403 " + channel + " :No such channel\r\n";
@@ -192,11 +228,10 @@ void Server::handleMode(int client_fd, const std::string& message)
         return;
     }
 
-    // If no modes specified, return current channel modes
     if (modes.empty())
     {
         std::string current_modes = channel_it->second.getModeString();
-        std::string response = ":localhost 324 " + channel + " " + current_modes + "\r\n";
+        std::string response = "Channel " + channel + " " + current_modes + "\r\n";
         send(client_fd, response.c_str(), response.length(), 0);
         return;
     }
@@ -223,33 +258,62 @@ void Server::handleMode(int client_fd, const std::string& message)
         {
             switch (modes[i])
             {
-                case 'i': // Invite-only
+                case 'i':
                     channel_it->second.setInviteOnly(adding);
                     applied_modes += (adding ? "+i" : "-i");
                     break;
-                case 't': // Topic restriction
+                case 't':
                     channel_it->second.setTopicRestricted(adding);
                     applied_modes += (adding ? "+t" : "-t");
                     break;
-                case 'o': // Operator status
-                    iss >> target;
-                    if (!target.empty())
-                    {
-                        try {
-                            int target_fd = getClientFdByName(target);
-                            if (adding)
-                                channel_it->second.addOperator(target_fd);
-                            else
-                                channel_it->second.removeOperator(target_fd);
-                            applied_modes += (adding ? "+o" : "-o");
-                            applied_target = target;
-                        }
-                        catch (const std::runtime_error& e) {
-                            std::string error = ":localhost 401 " + target + " :No such nick\r\n";
-                            send(client_fd, error.c_str(), error.length(), 0);
-                            return;
-                        }
-                    }
+                case 'o':
+					iss >> target;
+					if (!target.empty())
+					{
+						try {
+							int target_fd = -1;
+							std::vector<Client>::iterator it = _clients.begin();
+							while (it != _clients.end())
+							{
+								if (getLower(it->getNickname()) == getLower(target))
+								{
+									target_fd = it->getFd();
+									break;
+								}
+								++it;
+							}
+
+							if (target_fd == -1)
+							{
+								std::string error = target + " :No such nick\r\n";
+								send(client_fd, error.c_str(), error.length(), 0);
+								return;
+							}
+
+							if (!channel_it->second.isUserInChannel(target_fd))
+							{
+								std::string error = it->getNickname() + " " + channel + " :They aren't on that channel\r\n";
+								send(client_fd, error.c_str(), error.length(), 0);
+								return;
+							}
+
+							if (channel_it->second.isOperator(target_fd))
+								return;
+							if (adding)
+								channel_it->second.addOperator(target_fd);
+							else
+								channel_it->second.removeOperator(target_fd);
+							
+							applied_modes += (adding ? "+o" : "-o");
+							applied_target = target;
+						}
+						catch (const std::runtime_error& e) {
+							std::string error = ":localhost 401 " + target + " :No such nick\r\n";
+							send(client_fd, error.c_str(), error.length(), 0);
+							return;
+						}
+					}
+
                     else
                     {
                         std::string error = ":localhost 461 MODE :Missing target for +o/-o\r\n";
@@ -257,7 +321,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                         return;
                     }
                     break;
-                case 'k': // Channel key (password)
+                case 'k':
                     if (adding)
                     {
                         iss >> extra_param;
@@ -305,7 +369,6 @@ void Server::handleMode(int client_fd, const std::string& message)
         }
     }
 
-    // Notify channel members about mode change
     std::vector<Client>::iterator setter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
     if (setter != _clients.end())
     {
@@ -353,12 +416,19 @@ void Server::handleInvite(int client_fd, const std::string& message)
         return;
     }
 
-    int target_fd;
-    try
+    int target_fd = -1;
+    std::vector<Client>::iterator target_it = _clients.begin();
+    while (target_it != _clients.end())
     {
-        target_fd = getClientFdByName(nickname);
+        if (getLower(target_it->getNickname()) == getLower(nickname))
+        {
+            target_fd = target_it->getFd();
+            break;
+        }
+        ++target_it;
     }
-    catch (const std::runtime_error &e)
+
+    if (target_fd == -1)
     {
         std::string error = ":localhost 401 " + nickname + " :No such nick\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
@@ -375,18 +445,19 @@ void Server::handleInvite(int client_fd, const std::string& message)
 
     std::string inviter_nickname = inviter->getNickname();
 
-	if (channel.hasClient(target_fd))
-	{
-		std::string error = ":localhost 443 " + inviter_nickname + " " + nickname + " " + channel_name + " :is already on channel\r\n";
-		send(client_fd, error.c_str(), error.length(), 0);
-		return;
-	}
+    if (channel.hasClient(target_fd))
+    {
+        std::string error = ":localhost 443 " + inviter_nickname + " " + nickname + " " + channel_name + " :is already on channel\r\n";
+        send(client_fd, error.c_str(), error.length(), 0);
+        return;
+    }
 
     channel.setAllowedClient(target_fd);
 
     std::string success = ":localhost 341 " + inviter_nickname + " " + nickname + " " + channel_name + "\r\n";
     send(client_fd, success.c_str(), success.length(), 0);
-    
+
     std::string invite_msg = "You have been invited to " + channel_name + " by " + inviter_nickname + "\r\n";
     send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
 }
+

@@ -43,6 +43,7 @@ class Channel
 		void											removeClient(int client_fd);
 		void											addClient(int client_fd);
 		void								revokePermissions(int client_fd);
+
 		
 		 bool isOperator(int client_fd) const 
         { 
@@ -107,6 +108,19 @@ class Channel
 			if (_pass.size() > 0) modes += "k";
             return modes;
         }
+
+		bool isUserInChannel(int client_fd) const
+		{
+			std::map<int, std::vector<std::string> >::const_iterator it;
+			for (it = _clients.begin(); it != _clients.end(); ++it)
+			{
+				if (it->first == client_fd)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 
 };
 

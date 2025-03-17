@@ -89,6 +89,8 @@ class Server
 		void handleKick(int client_fd, const std::string& message);
 		void handleInvite(int client_fd, const std::string& message);
 		void handleMode(int client_fd, const std::string& message);
+		bool checkUserExists(const std::string& nickname) const;
+
 
 
 
