@@ -35,6 +35,7 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	std::string channelName, newTopic;
 
 	lineStream >> channelName;
+	lineStream >> newTopic;
 	if (channelName.empty())
 	{
 		std::string errMsg = ":localhost 461 " + channelName + " :Not enough parameters\r\n";
@@ -64,7 +65,9 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-	std::getline(lineStream >> std::ws, newTopic);
+
+	//std::getline(lineStream >> std::ws, newTopic);
+	newTopic = getFullMsg(newTopic, lineStream);
 	commandTopic(It->first, newTopic);
 }
 

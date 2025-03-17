@@ -6,7 +6,7 @@
 /*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 14:07:24 by diogosan          #+#    #+#             */
-/*   Updated: 2025/03/17 11:22:28 by diogosan         ###   ########.fr       */
+/*   Updated: 2025/03/17 12:33:56 by diogosan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,10 @@
 
 void Server::checkCommandPart(std::istringstream &lineStream)
 {
-	std::string channels, msgs;
+	std::string channels, msg, next;
 	lineStream >> channels;
-	lineStream >> msgs;
+	lineStream >> msg;
+
 
 	if (channels.empty())
 	{
@@ -30,13 +31,14 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 		return ;
 	}
-	std::stringstream channelStream(channels), msgsStream(msgs);
-	std::string channelName, msg;
+
+	msg = getFullMsg(msg, lineStream);
+
+	std::stringstream channelStream(channels);
+	std::string channelName;
 	while (std::getline(channelStream, channelName, ','))
 	{
-		std::getline(msgsStream, msg ,',');
-		if (msgsStream && msg[1] == ':')
-			msg.erase(0,1);
+
 		if (!channelName.empty())
 		{
 			if (!msg.empty() && std::isprint(msg[1]))

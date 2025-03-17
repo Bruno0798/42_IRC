@@ -219,9 +219,10 @@ void Server::handleClientWrite(std::vector<pollfd>& fds, size_t i)
 	Client &user = _clients.at(i - 1);
 	std::istringstream check(user.getBuffer());
 	std::string cmd, msg;
-	check >> cmd >> msg;
+	check >> cmd;
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	if (cmd == "QUIT")
-		commandQuit(fds, i, msg);
+		commandQuit(fds, i, check);
 	else
 	{
 		handleCommand(user, fds[i].fd);
