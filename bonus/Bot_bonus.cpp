@@ -13,11 +13,9 @@ void Server::JoinBot(int client_fd, const std::string& channel_name)
 	}
 
 	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	// Add client to existing channel
 	if (it->second.isOperator(_clientFd))
 	{
 		it->second.addClient(client_fd);
-		//std::cout << "Bot Joined existing channel: " << channel_name << std::endl;
 	}
 	else 
 	{
@@ -159,7 +157,6 @@ std::string Server::getMsg()
 
 	std::srand(std::time(0)); // Seed the random number generator
     int msg = std::rand() % 5;
-	
-	//std::cout << "coord is:"<<msg << std::endl;
+
 	return msgs[msg];
 }

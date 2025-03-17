@@ -244,8 +244,12 @@ std::string Server::sendMessage(std::string &buff)
 {
 	return buff;
 }
+
 void Server::welcome_messages(int client_fd)
 {
+	time_t _server_creation_time = std::time(NULL);
+	std::string time = std::asctime(std::localtime(&_server_creation_time));
+	time[time.find('\n')] = '\0';
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it == _clients.end())
 	{
@@ -254,12 +258,16 @@ void Server::welcome_messages(int client_fd)
 	}
 
 	Client &user = *client_it;
+	std::string msg = ":localhost 372 " + client_it->getNickname() + " :WELCOME COMRADE, TO OUR IRC SERVER!\r\n";
+	std::string msgEnd = ":localhost 376 " + client_it->getNickname() + " :End of /MOTD command.\r\n";
 
 	send(user.getFd(), RPL_WELCOME(user.getNickname(),user.getUsername()).c_str(), RPL_WELCOME(user.getNickname(),user.getUsername()).size(), 0);
 	send(user.getFd(), RPL_YOURHOST(user.getNickname(),user.getUsername()).c_str(), RPL_YOURHOST(user.getNickname(),user.getUsername()).size(), 0);
-	send(user.getFd(), RPL_CREATED(user.getNickname(),user.getUsername()).c_str(), RPL_CREATED(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_CREATED(user.getNickname(),user.getUsername(), time.c_str()).c_str(), RPL_CREATED(user.getNickname(),user.getUsername(),time.c_str()).size(), 0);
 	send(user.getFd(), RPL_MYINFO(user.getNickname(),user.getUsername()).c_str(), RPL_MYINFO(user.getNickname(),user.getUsername()).size(), 0);
 	send(user.getFd(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).c_str(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), msg.c_str(), msg.size(), 0);
+	send(user.getFd(), msgEnd.c_str(), msgEnd.size(), 0);
 }
 
 std::string Server::getPass()

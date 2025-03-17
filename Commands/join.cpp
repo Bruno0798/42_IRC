@@ -113,22 +113,24 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         int join_status = it->second.canJoin(client_fd, pass);
         if (join_status == 471)
 		{
-            send(client_fd, (":ircserver 471 " + it->first + " :Channel is full\r\n").c_str(), 39, 0);
+			std::string response = ":localhost 471 " + client_it->getNickname() + " " + it->first + " :Channel is full\r\n";
+            send(client_fd, response.c_str(), response.size(), 0);
 			return;
 		}
-        else if (join_status == 473){
-            send(client_fd, (":ircserver 473 " + it->first + " :Invite only channel\r\n").c_str(), 44, 0);
-
+        else if (join_status == 473)
+		{
+			std::string response = ":localhost 473 " + client_it->getNickname() + " " + it->first + " :Cannot join channel (+i)\r\n";
+            send(client_fd, response.c_str(), response.size(), 0);\
 			return;
 		}
-        else if (join_status == 475){
-            send(client_fd, (":ircserver 475 " + it->first + " :Incorrect channel key\r\n").c_str(), 47, 0);
+        else if (join_status == 475)
+		{
+			std::string response = ":localhost 475 " + client_it->getNickname() + " " + it->first + " :Incorrect channel key\r\n";
+            send(client_fd, response.c_str(), response.size(), 0);
 			return;
 		}
-        else 
-        {
+        else
             it->second.addClient(client_fd);
-        }
     }
 
 	it = _channels.begin();
