@@ -1,18 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   helpFunctions.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: diogosan <diogosan@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/04 17:42:06 by bde-souz          #+#    #+#             */
-/*   Updated: 2025/03/17 20:45:45 by diogosan         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Channel.hpp"
 #include "Server.hpp"
-#include <vector>
+#include "Irc.hpp"
 
 std::vector<Client>::iterator Server::getClient(int clientFd)
 {
@@ -27,7 +15,6 @@ std::vector<Client>::iterator Server::getClient(int clientFd)
 	throw std::runtime_error("Client not found");
 }
 
-
 void Server::makeUserList(std::string channel_name)
 {
 	std::map<std::string, Channel>::iterator channelIt = _channels.begin();
@@ -37,18 +24,14 @@ void Server::makeUserList(std::string channel_name)
 			break;
 		++channelIt;
 	}
-
 	if (channelIt != _channels.end())
 	{
 		Channel channel = channelIt->second;
 		std::map<int, std::vector<std::string> > clients = channel.getClients();
 		
 		std::string nameList = ":localhost 353 " + getClient(_clientFd)->getNickname() + " @ " + channel.getName() + " :";
-		
-
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
-			
 			if (channel.isOperator(It->first))
 				nameList += "@";
 			if (It->first == 424242)
@@ -57,12 +40,8 @@ void Server::makeUserList(std::string channel_name)
 				nameList+= getClient(It->first)->getNickname() + " ";
 		}
 		nameList += "\r\n";
-
-		//std::cout << nameList << std::endl;
 		broadcastMessageToChannel(nameList, channel.getName());
-		
 		std::string endOfNames = ":localhost 366 " + getClient(_clientFd)->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
-		//std::cout << endOfNames << std::endl;
 		send(_clientFd, endOfNames.c_str(), endOfNames.size(), 0);
 	}
 	else

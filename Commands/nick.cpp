@@ -58,17 +58,15 @@ void Server::handleNick(int client_fd, const std::string& message)
 	std::vector<Client>::iterator	client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (nickname.empty())
 	{
-		response = ":localhost 431 :No nickname given\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-		return;
+		std::cerr << RED << "No Nickname received" << WHITE << std::endl;
+		send(client_fd, ERR_NONICKNAMEGIVEN(client_it->getNickname()).c_str(), ERR_NONICKNAMEGIVEN(client_it->getNickname()).size(), 0);
 	}
-	if (!isNicknameValid(nickname))
+	else if (!isNicknameValid(nickname))
 	{
-		std::string response = ":localhost 432 " + client_it->getNickname() + " " + nickname +  " :Erroneous nickname\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-		return;
+		std::cerr << RED << "Invalid Chars in the nickname" << WHITE << std::endl;
+		send(client_fd, ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).c_str(), ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).size(), 0);
 	}
-	if (client_it != _clients.end())
+	else if (client_it != _clients.end())
 	{
 		for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{

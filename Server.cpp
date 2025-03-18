@@ -10,6 +10,7 @@
 #include <poll.h>
 #include <vector>
 #include "numerical_replies.hpp"
+#include <fcntl.h>
 
 Server::Server() {}
 
@@ -70,7 +71,6 @@ bool Server::fillServerInfo(char *port)
         << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
         << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
         << std::endl;
-
     return true;
 }
 
@@ -83,6 +83,12 @@ bool Server::initServer()
 		return false;
 	}
 
+	// Set the socket to non-blocking mode
+	if (fcntl(_fd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Failed to set socket to non-blocking mode." << std::endl;
+		return false;
+	}
 	int yes = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
@@ -160,7 +166,6 @@ void Server::runServer()
 	}
 }
 
-
 void Server::handleNewConnection(std::vector<pollfd>& fds)
 {
 	sockaddr_storage client_addr;
@@ -171,7 +176,12 @@ void Server::handleNewConnection(std::vector<pollfd>& fds)
 		perror("accept");
 		return;
 	}
-
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Failed to set client socket to non-blocking mode." << std::endl;
+		close(client_fd);
+		return;
+	}
 	std::cout << GREEN << "New Connection on fd: " << client_fd << std::endl;
 
 	Client new_client(client_fd);
@@ -240,11 +250,6 @@ void Server::handleClientError(std::vector<pollfd>& fds, size_t i)
 	--i;
 }
 
-std::string Server::sendMessage(std::string &buff)
-{
-	return buff;
-}
-
 void Server::welcome_messages(int client_fd)
 {
 	time_t _server_creation_time = std::time(NULL);
@@ -262,24 +267,10 @@ void Server::welcome_messages(int client_fd)
 	std::string msgEnd = ":localhost 376 " + client_it->getNickname() + " :End of /MOTD command.\r\n";
 
 	send(user.getFd(), RPL_WELCOME(user.getNickname(),user.getUsername()).c_str(), RPL_WELCOME(user.getNickname(),user.getUsername()).size(), 0);
-	send(user.getFd(), RPL_YOURHOST(user.getNickname(),user.getUsername()).c_str(), RPL_YOURHOST(user.getNickname(),user.getUsername()).size(), 0);
-	send(user.getFd(), RPL_CREATED(user.getNickname(),user.getUsername(), time.c_str()).c_str(), RPL_CREATED(user.getNickname(),user.getUsername(),time.c_str()).size(), 0);
-	send(user.getFd(), RPL_MYINFO(user.getNickname(),user.getUsername()).c_str(), RPL_MYINFO(user.getNickname(),user.getUsername()).size(), 0);
-	send(user.getFd(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).c_str(), RPL_ISUPPORT(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_YOURHOST(user.getNickname()).c_str(), RPL_YOURHOST(user.getNickname()).size(), 0);
+	send(user.getFd(), RPL_CREATED(user.getNickname(), time).c_str(), RPL_CREATED(user.getNickname(),time).size(), 0);
+	send(user.getFd(), RPL_MYINFO(user.getNickname()).c_str(), RPL_MYINFO(user.getNickname()).size(), 0);
+	send(user.getFd(), RPL_ISUPPORT(user.getNickname()).c_str(), RPL_ISUPPORT(user.getNickname()).size(), 0);
 	send(user.getFd(), msg.c_str(), msg.size(), 0);
 	send(user.getFd(), msgEnd.c_str(), msgEnd.size(), 0);
-}
-
-std::string Server::getPass()
-{
-	return _password;
-}
-
-bool Server::checkUserExists(const std::string& nickname) const{
-	for (size_t i = 0; i < _clients.size(); ++i)
-	{
-		if (_clients[i].getNickname() == nickname)
-			return true;
-	}
-	return false;
 }

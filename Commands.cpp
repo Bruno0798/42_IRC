@@ -69,47 +69,9 @@ void Server::handleCommand(Client& user, int client_fd)
 int Server::getClientFdByName(const std::string& nickname) {
 	for (std::vector<Client>::iterator clientIt = _clients.begin(); clientIt != _clients.end(); ++clientIt) {
 		if (clientIt->getNickname() == nickname)
-		{
 			return clientIt->getFd();
-		}
 	}
 	throw std::runtime_error("Client not found");
-}
-
-void Server::handleWho(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string cmd, channel_name;
-	iss >> cmd >> channel_name;
-
-	if (channel_name.empty())
-	{
-		std::cerr << "WHO command requires a channel name" << std::endl;
-		return;
-	}
-
-	std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-	if (it == _channels.end())
-	{
-		std::cerr << "Channel not found: " << channel_name << std::endl;
-		return;
-	}
-
-	const Channel& channel = it->second;
-	std::string response = ":bsousa-d!bsousa-d@localhost 352 " + channel_name + " :";
-
-	const std::map<int, std::vector<std::string> >& clients = channel.getClients();
-	for (std::map<int, std::vector<std::string> >::const_iterator it = clients.begin(); it != clients.end(); ++it)
-	{
-		int client_fd = it->first;
-		std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-		if (client_it != _clients.end())
-		{
-			response += client_it->getNickname() + " ";
-		}
-	}
-	response += "\r\n";
-	send(client_fd, response.c_str(), response.size(), 0);
 }
 
 void Server::handleKick(int client_fd, const std::string& message)
@@ -119,23 +81,19 @@ void Server::handleKick(int client_fd, const std::string& message)
     iss >> cmd >> channel >> targets;
 
 	std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (iss.peek() == ' ') // Ignore leading space
+	if (iss.peek() == ' ')
 		iss.get();
-	if (iss.peek() == ':') // Check if full message is provided
+	if (iss.peek() == ':')
 	{
-		iss.get(); // Remove ':'
-		std::getline(iss, reason); // Get the entire message
+		iss.get();
+		std::getline(iss, reason);
 	}
 	else
 		iss >> reason;
-	// Get only the first word
 
-	if (reason.empty() || !std::isprint(reason[1])) {
-		reason = ":" + kicker->getNickname();
-	}
-
-
-	if (channel.empty() || targets.empty())
+	if (reason.empty() || !std::isprint(reason[1]))
+			reason = ":" + kicker->getNickname();
+		if (channel.empty() || targets.empty())
     {
 		std::string error = ":localhost 461 KICK :Not enough parameters\r\n";
 		send(client_fd, error.c_str(), error.length(), 0);
@@ -149,14 +107,12 @@ void Server::handleKick(int client_fd, const std::string& message)
             break;
         ++channel_it;
     }
-	
     if (channel_it == _channels.end())
     {
         std::string error = ":localhost 403 " + kicker->getNickname() + " " + channel + " :No such channel\r\n";
         send(client_fd, error.c_str(), error.length(), 0);
         return;
     }
-
     if (!channel_it->second.isOperator(client_fd))
     {
 			std::string error = ":localhost 482 " + kicker->getNickname() + " " + channel + " :You're not channel operator\r\n";
@@ -202,14 +158,12 @@ void Server::handleKick(int client_fd, const std::string& message)
                                "@localhost KICK " + channel + " " + it->getNickname() + " " + reason + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
-
         channel_it->second.revokePermissions(target_fd);
         channel_it->second.removeClient(target_fd);
 		if (channel_it->second.getClients().empty())
 			_channels.erase(channel_it->first);
     }
 }
-
 
 void Server::handleMode(int client_fd, const std::string& message)
 {
@@ -471,4 +425,3 @@ void Server::handleInvite(int client_fd, const std::string& message)
     std::string invite_msg = "You have been invited to " + channel_name + " by " + inviter_nickname + "\r\n";
     send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
 }
-

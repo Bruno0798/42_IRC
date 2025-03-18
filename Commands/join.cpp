@@ -68,7 +68,6 @@ void Server::checkCommandJoin(std::istringstream &lineStream)
 	}
 }
 
-
 std::string getLower(const std::string& str)
 {
 	std::string lower = str;
@@ -85,8 +84,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		return;
 	}
 	bool show = false;
-
-	
 	std::map<std::string, Channel>::iterator it = _channels.begin();
 	while (it != _channels.end())
 	{
@@ -96,7 +93,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 	}
 	if (it == _channels.end() || !it->second.hasClient(_clientFd))
 		show = true;
-
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
     if (it == _channels.end()) 
     {
@@ -130,7 +126,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         else
             it->second.addClient(client_fd);
     }
-
 	it = _channels.begin();
 	while (it != _channels.end())
 	{
@@ -138,7 +133,6 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 			break;
 		++it;
 	}
-	
 	if (show)
 	{
 		std::string response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost JOIN " + channel_name + "\r\n";

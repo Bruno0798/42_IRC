@@ -28,14 +28,12 @@ void Server::handlePass(int client_fd, const std::string& message)
 	if(client_it->isAuth())
 	{
 		std::cerr << RED << "Trying to reregister" << WHITE << std::endl;
-		std::string response = ":localhost 462 " + client_it->getNickname() + ":You may not reregister\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
+		send(client_fd, ERR_ALREADYREGISTERED(client_it->getNickname()).c_str(), ERR_ALREADYREGISTERED(client_it->getNickname()).size(), 0);
 	}
-	else 	if (password.empty())
+	else if (password.empty())
 	{
 		std::cerr << RED << "No Password found" << WHITE << std::endl;
-		std::string response = ":localhost 461 " + client_it->getNickname() + ":Not enough parameters\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
+		send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "PASS").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "PASS").size(), 0);
 	}
 	else if (client_it != _clients.end())
 	{
@@ -48,9 +46,8 @@ void Server::handlePass(int client_fd, const std::string& message)
 			return ;
 		}
 		std::cerr << RED << "Password Incorrect" << WHITE << std::endl;
-		std::string response = ":localhost 464 " + client_it->getNickname() + ":Password incorrect\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-		client_it->delete_buffer();
+		send(client_fd, ERR_PASSWDMISMATCH(client_it->getNickname()).c_str(), ERR_PASSWDMISMATCH(client_it->getNickname()).size(), 0);
+//		client_it->delete_buffer();
 	}
 	else
 	{

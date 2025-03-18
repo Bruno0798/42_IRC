@@ -1,6 +1,7 @@
 #ifndef IRC_HPP
 #define IRC_HPP
 
+#include "numerical_replies.hpp"
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
