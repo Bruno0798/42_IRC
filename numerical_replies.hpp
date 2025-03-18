@@ -11,12 +11,14 @@
 # define RPL_ISUPPORT(nickname) (":localhost 005 " + (nickname) + " :CHANMODES=o,i,k,l,t\r\n")
 
 //PASS
-#define ERR_ALREADYREGISTERED(nickname) (":localhost 462 " + (nickname) + " :You may not reregister\r\n")
-#define ERR_PASSWDMISMATCH(nickname) (":localhost 464 " + (nickname) + " :Password incorrect\r\n")
+# define ERR_ALREADYREGISTERED(nickname) (":localhost 462 " + (nickname) + " :You may not reregister\r\n")
+# define ERR_PASSWDMISMATCH(nickname) (":localhost 464 " + (nickname) + " :Password incorrect\r\n")
 
 //NICK
-#define ERR_NONICKNAMEGIVEN(nickname) (":localhost 431" + (nickname) + " :No nickname given\r\n")
-#define ERR_ERRONEUSNICKNAME(nickname, nick) (":localhost 432" + (nickname) + " " + (nick) + " :Erroneus nickname\r\n")
+# define ERR_NONICKNAMEGIVEN(nickname) (":localhost 431 " + (nickname) + " :No nickname given\r\n")
+# define ERR_ERRONEUSNICKNAME(nickname, nick) (":localhost 432 " + (nickname) + " " + (nick) + " :Erroneus nickname\r\n")
+# define ERR_NICKNAMEINUSE(nickname, nick) (":localhost 433 " + (nickname) + " " + (nick) + " :Nickname is already in use\r\n")
+
 
 
 
