@@ -48,6 +48,16 @@ void Server::makeUserList(std::string channel_name)
 		throw std::runtime_error("No server was found!");
 }
 
+void Server::broadcastMessageToClients(const std::string& message)
+{
+	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		int clientFd = it->getFd();
+		if (clientFd != 424242)
+			send(clientFd, message.c_str(), message.size(), 0);
+	}
+}
+
 void Server::broadcastMessageToChannel(const std::string& message, std::string channel)
 {
 	std::map<std::string, Channel>::iterator channelIt = _channels.begin();

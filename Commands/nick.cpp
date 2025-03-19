@@ -101,9 +101,8 @@ void Server::handleNick(int client_fd, const std::string& message)
 		if (client_it->isRegistered())
 		{
 			response = ":" + client_it->getNickname() + "!~" + client_it->getUsername() + "@localhost NICK :" + nickname + "\r\n";
-			send(client_fd, response.c_str(), response.size(), 0);
-			for (std::map<std::string, Channel>::iterator channel_it = _channels.begin(); channel_it != _channels.end(); ++channel_it)
-				broadcastMessageToChannel(response, channel_it->first);
+//		send(client_fd, response.c_str(), response.size(), 0);
+			broadcastMessageToClients(response);
 		}
 		client_it->setNickname(nickname);
 	}

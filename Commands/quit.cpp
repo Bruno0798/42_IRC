@@ -10,7 +10,7 @@ void Server::commandQuit(std::vector<struct pollfd>& fds, size_t i, std::istring
 
 	reason = getFullMsg(reason, msg);
 
-	if (!std::isprint(reason[1]))
+	if (reason.length() > 1 && !std::isprint(reason[1]))
 		handleClientDisconnection(fds, i, 0, "Has left");
 	else
 		handleClientDisconnection(fds, i, 0, reason);

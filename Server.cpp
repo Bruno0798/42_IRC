@@ -121,14 +121,11 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 	while (channel != _channels.end())
 	{
 		if(LookClientInChannel(channel->first))
-		{
-			std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
 			channel->second.removeClient(_clientFd);
-			send(_clientFd, leaveMsg.c_str(), leaveMsg.size(), 0);
-			broadcastMessageToChannel(leaveMsg, channel->first);
-		}
 		channel++;
 	}
+	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
+	broadcastMessageToClients(leaveMsg);
 }
 
 void Server::runServer()

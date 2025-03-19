@@ -62,6 +62,7 @@ class Server
 	//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
 		void							broadcastMessageToChannel(const std::string& message, std::string channel);
+		void							broadcastMessageToClients(const std::string& message);
 		std::vector<Client>::iterator	getClient(int clientFd);
 		void							checkCommandPart(std::istringstream &lineStream);
 		void							commandPart(std::string &channelName, const std::string &msg);
