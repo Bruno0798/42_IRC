@@ -115,7 +115,11 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 	while (channel != _channels.end())
 	{
 		if(LookClientInChannel(channel->first))
+		{
 			channel->second.removeClient(_clientFd);
+			if (channel->second.getClients().empty())
+				_channels.erase(channel->first);
+		}
 		channel++;
 	}
 	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
