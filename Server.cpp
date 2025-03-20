@@ -234,9 +234,7 @@ void Server::handleClientWrite(std::vector<pollfd>& fds, size_t i)
 	if (cmd == "QUIT")
 		commandQuit(fds, i, check);
 	else
-	{
 		handleCommand(user, fds[i].fd);
-	}
 	fds[i].events = POLLIN;
 }
 
