@@ -86,7 +86,7 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 
 std::string getFullMsg(std::string &msg, std::istringstream &lineStream)
 {
-	if (msg[0] == ':')
+	if (msg[0] == ':' && msg.size() > 1)
 	{
 		msg.erase(0,1);
 		std::string nextWord;

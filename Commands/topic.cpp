@@ -66,14 +66,7 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 		return ;
 	}
 
-	//std::getline(lineStream >> std::ws, newTopic);
-	if (newTopic[0] == ':' && newTopic.size() == 1)
-	{
-		commandTopic(It->first, newTopic);
-		return;;
-	}
-	else
-		newTopic = getFullMsg(newTopic, lineStream);
+	newTopic = getFullMsg(newTopic, lineStream);
 	commandTopic(It->first, newTopic);
 }
 
@@ -90,8 +83,8 @@ void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 			send(_clientFd, RPL_TOPIC(getClient(_clientFd)->getNickname(), channelName, topicMsg).c_str(), RPL_TOPIC(getClient(_clientFd)->getNickname(), channelName, topicMsg).size(), 0);
 		return ;
 	}
-	std::cout << "new topic is: "<< newTopic << std::endl;
-	if (newTopic[0] == ':')
+
+	if (newTopic[0] == ':' && newTopic.size() == 1)
 		newTopic = "";
 
 	std::map<std::string, Channel>::iterator It = _channels.find(channelName);
