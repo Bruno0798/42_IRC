@@ -114,17 +114,25 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 
 	while (channel != _channels.end())
 	{
-		if(LookClientInChannel(channel->first))
+		if (LookClientInChannel(channel->first))
 		{
 			channel->second.removeClient(_clientFd);
 			if (channel->second.getClients().empty())
-				_channels.erase(channel->first);
+			{
+				std::map<std::string, Channel>::iterator toErase = channel;
+				++channel;
+				_channels.erase(toErase);
+				continue;
+			}
 		}
-		channel++;
+		++channel;
 	}
 	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
 	broadcastMessageToClients(leaveMsg);
 }
+
+
+
 
 void Server::runServer()
 {
@@ -144,6 +152,7 @@ void Server::runServer()
 		}
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
+			_clientFd = fds[i].fd;
 			if (fds[i].revents & POLLIN)
 			{
 				if (fds[i].fd == _fd)
@@ -227,8 +236,8 @@ void Server::handleClientWrite(std::vector<pollfd>& fds, size_t i)
 	else
 	{
 		handleCommand(user, fds[i].fd);
-		fds[i].events = POLLIN;
 	}
+	fds[i].events = POLLIN;
 }
 
 void Server::handleClientError(std::vector<pollfd>& fds, size_t i)
