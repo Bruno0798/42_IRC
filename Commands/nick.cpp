@@ -49,7 +49,7 @@ bool isNicknameValid(const std::string& nickname)
 	return true;
 }
 
-void Server::handleNick(int client_fd, const std::string& message)
+void Server:: handleNick(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
 	std::string cmd, nickname, response;
@@ -59,24 +59,12 @@ void Server::handleNick(int client_fd, const std::string& message)
 	if (nickname.empty())
 	{
 		std::cerr << RED << "No Nickname received" << WHITE << std::endl;
-		if (!client_it->getNickname().empty())
-			send(client_fd, ERR_NONICKNAMEGIVEN(client_it->getNickname()).c_str(), ERR_NONICKNAMEGIVEN(client_it->getNickname()).size(), 0);
-		else
-		{
-			std::string nick = "*";
-			send(client_fd, ERR_NONICKNAMEGIVEN(nick).c_str(), ERR_NONICKNAMEGIVEN(nick).size(), 0);
-		}
+		send(client_fd, ERR_NONICKNAMEGIVEN(client_it->getNickname()).c_str(), ERR_NONICKNAMEGIVEN(client_it->getNickname()).size(), 0);
 	}
 	else if (!isNicknameValid(nickname))
 	{
 		std::cerr << RED << "Invalid Chars in the nickname" << WHITE << std::endl;
-		if (!client_it->getNickname().empty())
-			send(client_fd, ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).c_str(), ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).size(), 0);
-		else
-		{
-			std::string nick = "*";
-			send(client_fd, ERR_ERRONEUSNICKNAME(nick, nickname).c_str(), ERR_ERRONEUSNICKNAME(nick, nickname).size(), 0);
-		}
+		send(client_fd, ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).c_str(), ERR_ERRONEUSNICKNAME(client_it->getNickname(), nickname).size(), 0);
 	}
 	else if (client_it != _clients.end())
 	{
@@ -88,26 +76,17 @@ void Server::handleNick(int client_fd, const std::string& message)
 			std::transform(nickUsercpy.begin(), nickUsercpy.end(), nickUsercpy.begin(), ::tolower);
 			if (nickUsercpy == nickcpy)
 			{
-				if (!client_it->getNickname().empty())
-					send(client_fd, ERR_NICKNAMEINUSE(client_it->getNickname(), nickname).c_str(), ERR_NICKNAMEINUSE(client_it->getNickname(), nickname).size(), 0);
-				else
-				{
-					std::string nick = "*";
-					send(client_fd, ERR_NICKNAMEINUSE(nick, nickname).c_str(), ERR_NICKNAMEINUSE(nick, nickname).size(), 0);
-				}
+				send(client_fd, ERR_NICKNAMEINUSE(client_it->getNickname(), nickname).c_str(), ERR_NICKNAMEINUSE(client_it->getNickname(), nickname).size(), 0);
 				return;
 			}
 		}
 		if (client_it->isRegistered())
 		{
 			response = ":" + client_it->getNickname() + "!~" + client_it->getUsername() + "@localhost NICK :" + nickname + "\r\n";
-//		send(client_fd, response.c_str(), response.size(), 0);
 			broadcastMessageToClients(response);
 		}
 		client_it->setNickname(nickname);
 	}
 	else
-	{
 		std::cerr << "Client not found for fd: " << client_fd << std::endl;
-	}
 }

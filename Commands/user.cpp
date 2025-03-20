@@ -39,15 +39,9 @@ void Server::handleUser(int client_fd, const std::string& message)
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if(client_it->isRegistered())
-	{
-		std::string response = ":localhost 462 " + client_it->getNickname() + ":You may not reregister\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
-	}
+		send(client_fd, ERR_ALREADYREGISTERED(client_it->getNickname()).c_str(), ERR_ALREADYREGISTERED(client_it->getNickname()).size(), 0);
 	else if (username.empty() || hostname != "0" || servername != "*" || realname.empty() || realname[0] != ':')
-	{
-		std::string error = ":localhost 461 USER :Not enough parameters\r\n";
-		send(client_fd, error.c_str(), error.length(), 0);
-	}
+		send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "USER").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "USER").length(), 0);
 	else if (client_it != _clients.end())
 	{
 		realname = realname.substr(1);

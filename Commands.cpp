@@ -34,21 +34,21 @@ void Server::handleCommand(Client& user, int client_fd)
 			else
 			{
 				std::cout << RED << "ERROR: NOT AUTHENTICATED" << WHITE << std::endl;
-				std::string response = ":localhost 451 :You have not authenticated\r\n";
-				send(client_fd, response.c_str(), response.size(), 0);
+				send(client_fd, ERR_NOTAUTHENTICATED(user.getNickname()).c_str(), ERR_NOTAUTHENTICATED(user.getNickname()).size(), 0);
 			}
 		} else if(!user.isRegistered())
 		{
 			if (cmdsCpy == "PASS") handlePass(client_fd, line);
 			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
 			else if (cmdsCpy == "USER") handleUser(client_fd, line);
+			else send(client_fd, ERR_NOTREGISTERED(user.getNickname()).c_str(), ERR_NOTREGISTERED(user.getNickname()).size(), 0);
 			checkRegist(client_fd);
 		} else
 		{
 			if (cmdsCpy =="PASS") handlePass(client_fd, line);
 			else if (cmdsCpy =="NICK") handleNick(client_fd, line);
 			else if (cmdsCpy == "USER") handleUser(client_fd, line);
-			else if (cmdsCpy == "JOIN") checkCommandJoin(cmd);
+			else if (cmdsCpy == "JOIN") checkCommandJoin(client_fd, cmd);
 			else if (cmdsCpy == "PING") handlePing(client_fd, line);
 			else if (cmdsCpy == "MODE") handleMode(client_fd, line);
 			else if (cmdsCpy == "TOPIC") checkCommandTopic(cmd);

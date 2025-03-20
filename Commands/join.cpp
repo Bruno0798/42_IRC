@@ -37,18 +37,18 @@
  * 	[SERVER]; join channel #foo using key "fubar" and channel #bar using key "foobar".
  */
 
-void Server::checkCommandJoin(std::istringstream &lineStream)
+void Server::checkCommandJoin(int client_fd, std::istringstream &lineStream)
 {
 	std::string channels, lock;
 	lineStream >> channels;
 	lineStream >> lock;
+
+	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (channels.empty())
 	{
-		std::string errMsg = ":localhost 461 " + channels + " :Not enough parameters\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		send(_clientFd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "JOIN").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "JOIN").size(), 0);
 		return ;
 	}
-
 	std::stringstream channelStream(channels), passStream(lock);
 	
 	std::string channelName, pass;
@@ -107,20 +107,17 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
         int join_status = it->second.canJoin(client_fd, pass);
         if (join_status == 471)
 		{
-			std::string response = ":localhost 471 " + client_it->getNickname() + " " + it->first + " :Channel is full\r\n";
-            send(client_fd, response.c_str(), response.size(), 0);
+            send(client_fd, ERR_CHANNELISFULL(client_it->getNickname(), it->first).c_str(), ERR_CHANNELISFULL(client_it->getNickname(), it->first).size(), 0);
 			return;
 		}
         else if (join_status == 473)
 		{
-			std::string response = ":localhost 473 " + client_it->getNickname() + " " + it->first + " :Cannot join channel (+i)\r\n";
-            send(client_fd, response.c_str(), response.size(), 0);\
+            send(client_fd, ERR_INVITEONLYCHAN(client_it->getNickname(), it->first).c_str(), ERR_INVITEONLYCHAN(client_it->getNickname(), it->first).size(), 0);
 			return;
 		}
         else if (join_status == 475)
 		{
-			std::string response = ":localhost 475 " + client_it->getNickname() + " " + it->first + " :Incorrect channel key\r\n";
-            send(client_fd, response.c_str(), response.size(), 0);
+            send(client_fd, ERR_BADCHANNELKEY(client_it->getNickname(), it->first).c_str(), ERR_BADCHANNELKEY(client_it->getNickname(), it->first).size(), 0);
 			return;
 		}
         else
@@ -139,10 +136,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		send(_clientFd, response.c_str(), response.size(), 0);
 		
 		if (getChannelTopic(channel_name).empty())
-		{
-			std::string msg2 = ":localhost 331 " + client_it->getNickname() + " " + it->first + " :No topic is set\r\n";
-			send(_clientFd, msg2.c_str(), msg2.size(), 0);
-		}
+			send(_clientFd, RPL_NOTOPIC(client_it->getNickname(), it->first).c_str(), RPL_NOTOPIC(client_it->getNickname(), it->first).size(), 0);
 		else
 		{
 			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + it->first + " :" + getChannelTopic(channel_name) + "\r\n";

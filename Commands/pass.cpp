@@ -47,7 +47,6 @@ void Server::handlePass(int client_fd, const std::string& message)
 		}
 		std::cerr << RED << "Password Incorrect" << WHITE << std::endl;
 		send(client_fd, ERR_PASSWDMISMATCH(client_it->getNickname()).c_str(), ERR_PASSWDMISMATCH(client_it->getNickname()).size(), 0);
-//		client_it->delete_buffer();
 	}
 	else
 	{

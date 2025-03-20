@@ -72,7 +72,7 @@ class Server
 		void							checkCommandTopic(std::istringstream &lineStream);
 		void							commandTopic(const std::string &channelName, std::string &newTopic);
 		void							removeClientsFromChannels(int clientFd, const std::string &msg);
-		void							checkCommandJoin(std::istringstream &lineStream);
+		void							checkCommandJoin(int client_fd, std::istringstream &lineStream);
 		void							commandQuit(std::vector<struct pollfd>& fds, size_t i, std::istringstream &msg);
 		
 		

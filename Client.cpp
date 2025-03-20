@@ -28,6 +28,8 @@ int Client::getFd() const
 
 std::string Client::getNickname() const
 {
+	if(_nickname.empty())
+		return "*";
 	return _nickname;
 }
 
