@@ -1,6 +1,6 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
-#include "../Server.hpp"
+#include "../Server.hpp"  //TODO dont forget copy the commands here and and the else if (cmdsCpy =="BOT") checkCommandBot(cmd);
 
 void Server::checkRegist(int client_fd)
 {
