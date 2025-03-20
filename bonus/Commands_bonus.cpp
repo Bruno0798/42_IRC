@@ -16,7 +16,6 @@ void Server::handleCommand(Client& user, int client_fd)
 {
 	std::istringstream iss(user.getBuffer());
 	std::string line, cmds;
-	_clientFd = client_fd;
 
 	while(getline(iss, line))
 	{
