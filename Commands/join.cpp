@@ -137,5 +137,5 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		send(_clientFd, RPL_NOTOPIC(client_it->getNickname(), it->first).c_str(), RPL_NOTOPIC(client_it->getNickname(), it->first).size(), 0);
 	else
 		send(_clientFd, RPL_TOPIC(client_it->getNickname(), it->first, getChannelTopic(channel_name)).c_str(), RPL_TOPIC(client_it->getNickname(), it->first, getChannelTopic(channel_name)).size(), 0);
-	makeUserList(channel_name);
+	makeUserList(client_it,it->first);
 }

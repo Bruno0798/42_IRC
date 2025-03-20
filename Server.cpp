@@ -114,16 +114,24 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 
 	while (channel != _channels.end())
 	{
-		if(LookClientInChannel(channel->first))
+		if (LookClientInChannel(channel->first))
 		{
 			channel->second.removeClient(_clientFd);
 			if (channel->second.getClients().empty())
-				_channels.erase(channel->first);
+			{
+				std::map<std::string, Channel>::iterator toErase = channel;
+				++channel;
+				_channels.erase(toErase);
+				continue;
+			}
+			//makeUserList(getClient(clientFd), channel->first);
 		}
-		channel++;
+		++channel;
 	}
-	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
+
+	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" + getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
 	broadcastMessageToClients(leaveMsg);
+
 }
 
 void Server::runServer()
