@@ -262,12 +262,14 @@ void Server::handleMode(int client_fd, const std::string& message)
 								return;
 							}
 
-							if (channel_it->second.isOperator(target_fd))
-								return;
 							if (adding)
+							{
+								if(channel_it->second.isOperator(target_fd))
+									return;
 								channel_it->second.addOperator(target_fd);
+							}
 							else
-								channel_it->second.removeOperator(target_fd);
+							channel_it->second.removeOperator(target_fd);
 							
 							applied_modes += (adding ? "+o" : "-o");
 							applied_target = target;
