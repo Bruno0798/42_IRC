@@ -6,7 +6,7 @@
 void Server::checkRegist(int client_fd)
 {
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if(!client_it->getNickname().empty() && !client_it->getUsername().empty())
+	if(client_it->getNickname() != "*" && !client_it->getUsername().empty())
     {
 		client_it->setRegistered(true);
 		welcome_messages(client_fd);

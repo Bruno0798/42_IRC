@@ -4,7 +4,7 @@
 # define SOURCE(nickname, username) (":" + nickname + "!" + username + "@localhost ")
 
 //WELCOME MESSAGES
-# define RPL_WELCOME(nickname, username) (":localhost 001 " + (nickname) + " :Welcome to the IRC, " + (nickname) + "\r\n")
+# define RPL_WELCOME(nickname) (":localhost 001 " + (nickname) + " :Welcome to the IRC, " + (nickname) + "\r\n")
 # define RPL_YOURHOST(nickname) (":localhost 002 " + (nickname) + " :Your host is localhost\r\n")
 # define RPL_CREATED(nickname, time) (":localhost 003 " + (nickname) + " :This server was created " + (time) + "\r\n")
 # define RPL_MYINFO(nickname) (":localhost 004 " + (nickname) + " :localhost v1.0 o iklt\r\n")

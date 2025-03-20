@@ -83,12 +83,6 @@ bool Server::initServer()
 		return false;
 	}
 
-	// Set the socket to non-blocking mode
-	if (fcntl(_fd, F_SETFL, O_NONBLOCK) < 0)
-	{
-		std::cerr << "Failed to set socket to non-blocking mode." << std::endl;
-		return false;
-	}
 	int yes = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
@@ -139,7 +133,8 @@ void Server::runServer()
 	while (!shut_down)
 	{
 		int poll_count = poll(fds.data(), fds.size(), -1);
-		if (poll_count == -1) {
+		if (poll_count == -1)
+		{
 			perror("poll");
 			break;
 		}
@@ -171,12 +166,6 @@ void Server::handleNewConnection(std::vector<pollfd>& fds)
 	if (client_fd == -1)
 	{
 		perror("accept");
-		return;
-	}
-	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0)
-	{
-		std::cerr << "Failed to set client socket to non-blocking mode." << std::endl;
-		close(client_fd);
 		return;
 	}
 	std::cout << GREEN << "New Connection on fd: " << client_fd << std::endl;
@@ -251,7 +240,8 @@ void Server::welcome_messages(int client_fd)
 {
 	time_t _server_creation_time = std::time(NULL);
 	std::string time = std::asctime(std::localtime(&_server_creation_time));
-	time[time.find('\n')] = '\0';
+	time.erase(std::remove(time.begin(), time.end(), '\n'), time.end());
+
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (client_it == _clients.end())
 	{
@@ -263,7 +253,7 @@ void Server::welcome_messages(int client_fd)
 	std::string msg = ":localhost 372 " + client_it->getNickname() + " :WELCOME COMRADE, TO OUR IRC SERVER!\r\n";
 	std::string msgEnd = ":localhost 376 " + client_it->getNickname() + " :End of /MOTD command.\r\n";
 
-	send(user.getFd(), RPL_WELCOME(user.getNickname(),user.getUsername()).c_str(), RPL_WELCOME(user.getNickname(),user.getUsername()).size(), 0);
+	send(user.getFd(), RPL_WELCOME(user.getNickname()).c_str(), RPL_WELCOME(user.getNickname()).size(), 0);
 	send(user.getFd(), RPL_YOURHOST(user.getNickname()).c_str(), RPL_YOURHOST(user.getNickname()).size(), 0);
 	send(user.getFd(), RPL_CREATED(user.getNickname(), time).c_str(), RPL_CREATED(user.getNickname(),time).size(), 0);
 	send(user.getFd(), RPL_MYINFO(user.getNickname()).c_str(), RPL_MYINFO(user.getNickname()).size(), 0);
