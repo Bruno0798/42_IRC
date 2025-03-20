@@ -58,7 +58,7 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmdsCpy =="PART") checkCommandPart(cmd);
 			else
 			{
-				std::string errMsg = ":localhost 421 " + cmds + ":Unknown commands\r\n";
+				std::string errMsg = ":localhost 421 " + user.getNickname() + " " + cmds + " :Unknown commands\r\n";
 				send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
 			}
 		}
@@ -250,7 +250,7 @@ void Server::handleMode(int client_fd, const std::string& message)
 
 							if (target_fd == -1)
 							{
-								std::string error = "localhost 401 " + it->getNickname() + " " + target + " :No such nick\r\n";
+								std::string error = ":localhost 401 " + it->getNickname() + " " + target + " :No such nick\r\n";
 								send(client_fd, error.c_str(), error.length(), 0);
 								return;
 							}

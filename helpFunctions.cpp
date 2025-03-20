@@ -72,7 +72,7 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 	{
 		Channel channel = channelIt->second;
 		std::map<int, std::vector<std::string> > clients = channel.getClients();
-		
+
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
 			int clientFd = It->first;

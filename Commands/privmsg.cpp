@@ -31,27 +31,25 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 	std::string cmd, targets, msg;
 	iss >> cmd >> targets;
 
-	if (iss.peek() == ' ') // Ignore leading space
+	if (iss.peek() == ' ')
 		iss.get();
-	if (iss.peek() == ':') // Check if full message is provided
+	if (iss.peek() == ':')
 	{
-		iss.get(); // Remove ':'
-		std::getline(iss, msg); // Get the entire message
+		iss.get();
+		std::getline(iss, msg);
 	}
 	else
-		iss >> msg; // Get only the first word
+		iss >> msg;
 
 	std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (targets.empty())
 	{
-		std::string response = ":localhost 411 " + client_it->getNickname() + " :No recipient given PRIVMSG\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
+		send(client_fd, ERR_NORECIPIENT(client_it->getNickname(), "PRIVMSG").c_str(), ERR_NORECIPIENT(client_it->getNickname(), "PRIVMSG").size(), 0);
 		return;
 	}
 	if (msg.empty())
 	{
-		std::string response = ":localhost 412 " + client_it->getNickname() + " :No text to send\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
+		send(client_fd, ERR_NOTEXTTOSEND(client_it->getNickname()).c_str(), ERR_NOTEXTTOSEND(client_it->getNickname()).size(), 0);
 		return;
 	}
 
@@ -66,8 +64,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 		response = ":" + client_it->getNickname() + "!" + client_it->getUsername() + "@localhost PRIVMSG ";
 	else
 	{
-		response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
-		send(client_fd, response.c_str(), response.size(), 0);
+		send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).size(), 0);
 		return;
 	}
 
@@ -83,8 +80,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 			std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().find(client_fd);
 			if (it == channel.getClients().end())
 			{
-				std::string errorResponse = ":localhost 404 " + client_it->getNickname() + " " + target + " :Cannot send to channel\r\n";
-				send(client_fd, errorResponse.c_str(), errorResponse.size(), 0);
+				send(client_fd, ERR_CANNOTSENDTOCHAN(client_it->getNickname(), target).c_str(), ERR_CANNOTSENDTOCHAN(client_it->getNickname(), target).size(), 0);
 				continue;
 			}
 			for (std::map<int, std::vector<std::string> >::const_iterator it = channel.getClients().begin(); it != channel.getClients().end(); ++it)
@@ -102,7 +98,7 @@ void Server::handlePrivmsg(int client_fd, const std::string& message)
 			else
 			{
 				response = ":localhost 401 " + client_it->getNickname() + " :No such nick/channel\r\n";
-				send(client_fd, response.c_str(), response.size(), 0);
+				send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).size(), 0);
 			}
 		}
 	}

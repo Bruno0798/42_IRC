@@ -104,7 +104,7 @@ class Channel
             if (_inviteOnly) modes += "i";
             if (_topicRestricted) modes += "t";
             if (_hasUserLimit) modes += "l";
-			if (_operators.size() > 0) modes += "o";
+//			if (_operators.size() > 0) modes += "o";
 			if (_pass.size() > 0) modes += "k";
             return modes;
         }

@@ -39,10 +39,10 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	lineStream >> newTopic;
 	if (channelName.empty())
 	{
-		std::string errMsg = ":localhost 461 " + channelName + " :Not enough parameters\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		send(_clientFd, ERR_NEEDMOREPARAMS(getClient(_clientFd)->getNickname(), "TOPIC").c_str(), ERR_NEEDMOREPARAMS(getClient(_clientFd)->getNickname(), "TOPIC").size(), 0);
 		return ;
 	}
+
 
 	std::map<std::string, Channel >::iterator It = _channels.begin();
 
@@ -55,15 +55,14 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 	
 	if (channelName.empty()|| channelName[0] != '#' || It == _channels.end())
 	{
-		std::string errMsg = ":localhost 403 " + channelName + " :No such channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		send(_clientFd, ERR_NOSUCHCHANNEL(getClient(_clientFd)->getNickname(), channelName).c_str(), ERR_NOSUCHCHANNEL(getClient(_clientFd)->getNickname(), channelName).size(), 0);
 		return ;
 	}
 
 	if (!LookClientInChannel(channelName))
 	{
-		std::string errMsg = ":localhost 442 " + It->first + " :User is not in the channel!\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+
+		send(_clientFd, ERR_NOTONCHANNEL(getClient(_clientFd)->getNickname(), It->first).c_str(), ERR_NOTONCHANNEL(getClient(_clientFd)->getNickname(), It->first).size(), 0);
 		return ;
 	}
 
@@ -81,19 +80,14 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 {
 	std::cout << "new topic is: "<< newTopic << std::endl;
-	std::string topicMsg;
 
 	if (newTopic.empty() || !std::isprint(newTopic[0]))
 	{
-		std::string topic = getChannelTopic(channelName);
-		if (topic.empty())
-		{
-			topic = "No topic is set";
-			topicMsg = ":localhost 331 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
-		}
-		else	
-			topicMsg = ":localhost 332 " + getClient(_clientFd)->getNickname() + " " + channelName + " :" + topic + "\r\n";
-		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
+		std::string topicMsg = getChannelTopic(channelName);
+		if (topicMsg.empty())
+			send(_clientFd, RPL_NOTOPIC(getClient(_clientFd)->getNickname(), channelName).c_str(), RPL_NOTOPIC(getClient(_clientFd)->getNickname(), channelName).size(), 0);
+		else
+			send(_clientFd, RPL_TOPIC(getClient(_clientFd)->getNickname(), channelName, topicMsg).c_str(), RPL_TOPIC(getClient(_clientFd)->getNickname(), channelName, topicMsg).size(), 0);
 		return ;
 	}
 	std::cout << "new topic is: "<< newTopic << std::endl;
@@ -108,8 +102,5 @@ void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 		changeChannelTopic(channelName, newTopic);
 	}
 	else
-	{
-		std::string topicMsg = ":localhost 482 " + getClient(_clientFd)->getNickname() + " " + It->first + " :You're not channel operator\r\n"; 
-		send(_clientFd, topicMsg.c_str(), topicMsg.size(), 0);
-	}
+		send(_clientFd, ERR_CHANOPRIVSNEEDED(getClient(_clientFd)->getNickname(), It->first).c_str(), ERR_CHANOPRIVSNEEDED(getClient(_clientFd)->getNickname(), It->first).size(), 0);
 }

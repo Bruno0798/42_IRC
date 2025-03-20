@@ -15,4 +15,3 @@ void Server::commandQuit(std::vector<struct pollfd>& fds, size_t i, std::istring
 	else
 		handleClientDisconnection(fds, i, 0, reason);
 }
-

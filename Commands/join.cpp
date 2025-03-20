@@ -79,8 +79,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 {
 	if (channel_name[0] != '#')
 	{
-		std::string errMsg = ":localhost 461 " + channel_name + " :Invalid channel name\r\n";
-		send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
+		send(_clientFd, ERR_BADCHANMASK(channel_name).c_str(), ERR_BADCHANMASK(channel_name).size(), 0);
 		return;
 	}
 	bool show = false;
@@ -138,10 +137,7 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 		if (getChannelTopic(channel_name).empty())
 			send(_clientFd, RPL_NOTOPIC(client_it->getNickname(), it->first).c_str(), RPL_NOTOPIC(client_it->getNickname(), it->first).size(), 0);
 		else
-		{
-			std::string msgTopic = ":localhost 332 " + client_it->getNickname() + " " + it->first + " :" + getChannelTopic(channel_name) + "\r\n";
-			send(_clientFd, msgTopic.c_str(), msgTopic.size(), 0);
-		}
+			send(_clientFd, RPL_TOPIC(client_it->getNickname(), it->first, getChannelTopic(channel_name)).c_str(), RPL_TOPIC(client_it->getNickname(), it->first, getChannelTopic(channel_name)).size(), 0);
 		makeUserList(channel_name);
 	}
 }
