@@ -127,10 +127,8 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 		}
 		++channel;
 	}
-
-	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" + getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
+	std::string leaveMsg = ":" + getClient(clientFd)->getNickname() + "!" +getClient(clientFd)->getUsername() + "@localhost QUIT :Quit: " + msg + "\r\n";
 	broadcastMessageToClients(leaveMsg);
-
 }
 
 

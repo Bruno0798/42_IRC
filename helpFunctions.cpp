@@ -12,8 +12,7 @@ std::vector<Client>::iterator Server::getClient(int clientFd)
 			return clientIt;
 		++clientIt;
 	}
-	std::vector<Client>::iterator empty = _clients.end();
-	return empty;
+	throw std::runtime_error("Client not found");
 }
 
 void Server::makeUserList(std::string channel_name)//isto esta ok
@@ -33,26 +32,14 @@ void Server::makeUserList(std::string channel_name)//isto esta ok
 		std::string nameList = ":localhost 353 " + getClient(_clientFd)->getNickname() + " @ " + channel.getName() + " :";
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
-
+			if (channel.isOperator(It->first))
+				nameList += "@";
 			if (It->first == 424242)
 				nameList+= "Comrade ";
 			else
-			{
-				std::vector<Client>::iterator empty = _clients.end();
-				if (getClient(It->first) == empty)
-					;
-				else
-				{
-					if (channel.isOperator(It->first))
-						nameList += "@";
-					nameList+= getClient(It->first)->getNickname() + " ";
-				}
-
-			}
-
+				nameList+= getClient(It->first)->getNickname() + " ";
 		}
 		nameList += "\r\n";
-		std::cout << nameList << std::endl;
 		broadcastMessageToChannel(nameList, channel.getName());
 		std::string endOfNames = ":localhost 366 " + getClient(_clientFd)->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
 		send(_clientFd, endOfNames.c_str(), endOfNames.size(), 0);
