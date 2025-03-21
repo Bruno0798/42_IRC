@@ -30,7 +30,7 @@ void Server::makeUserList(std::string channel_name)//isto esta ok
 		Channel channel = channelIt->second;
 		std::map<int, std::vector<std::string> > clients = channel.getClients();
 		
-		std::string nameList = ":localhost 353 " + client->getNickname() + " @ " + channel.getName() + " :";
+		std::string nameList = ":localhost 353 " + getClient(_clientFd)->getNickname() + " @ " + channel.getName() + " :";
 		for (std::map<int, std::vector<std::string> >::iterator It = clients.begin(); It != clients.end(); It++)
 		{
 
@@ -54,7 +54,7 @@ void Server::makeUserList(std::string channel_name)//isto esta ok
 		nameList += "\r\n";
 		std::cout << nameList << std::endl;
 		broadcastMessageToChannel(nameList, channel.getName());
-		std::string endOfNames = ":localhost 366 " + client->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
+		std::string endOfNames = ":localhost 366 " + getClient(_clientFd)->getNickname() + " " + channel.getName() + " :End of /NAMES list.\r\n";
 		send(_clientFd, endOfNames.c_str(), endOfNames.size(), 0);
 	}
 	else
