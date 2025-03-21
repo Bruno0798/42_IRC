@@ -78,18 +78,19 @@ void Server::handleKick(int client_fd, const std::string& message)
 {
     std::istringstream iss(message);
     std::string cmd, channel, targets, reason;
-    iss >> cmd >> channel >> targets;
+    iss >> cmd >> channel >> targets >> reason;
 
+	reason = getFullMsg(reason, iss);
 	std::vector<Client>::iterator kicker = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-	if (iss.peek() == ' ')
-		iss.get();
-	if (iss.peek() == ':')
-	{
-		iss.get();
-		std::getline(iss, reason);
-	}
-	else
-		iss >> reason;
+//	if (iss.peek() == ' ')
+//		iss.get();
+//	if (iss.peek() == ':')
+//	{
+//		iss.get();
+//		std::getline(iss, reason);
+//	}
+//	else
+//		iss >> reason;
 
 	if (reason.empty() || !std::isprint(reason[1]))
 			reason = ":" + kicker->getNickname();
