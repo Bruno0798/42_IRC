@@ -96,5 +96,5 @@ std::string getFullMsg(std::string &msg, std::istringstream &lineStream)
 			msg += nextWord;
 		}
 	}
-	return msg;
+	return msg.substr(0, 100);
 }
