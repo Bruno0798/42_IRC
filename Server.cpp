@@ -116,6 +116,7 @@ void Server::removeClientsFromChannels(int clientFd, const std::string &msg)
 	{
 		if (LookClientInChannel(channel->first))
 		{
+			channel->second.revokePermissions(_clientFd);
 			channel->second.removeClient(_clientFd);
 			if (channel->second.getClients().empty())
 			{
