@@ -1,6 +1,6 @@
 #include "../Irc.hpp"
 #include "../Client.hpp"
-#include "../Server.hpp"
+#include "../Server.hpp"  //TODO dont forget copy the commands here and and the else if (cmdsCpy =="BOT") checkCommandBot(cmd);
 
 void Server::checkRegist(int client_fd)
 {
@@ -16,7 +16,6 @@ void Server::handleCommand(Client& user, int client_fd)
 {
 	std::istringstream iss(user.getBuffer());
 	std::string line, cmds;
-	_clientFd = client_fd;
 
 	while(getline(iss, line))
 	{

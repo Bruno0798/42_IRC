@@ -16,7 +16,7 @@ std::vector<Client>::iterator Server::getClient(int clientFd)
 	return empty;
 }
 
-void Server::makeUserList(std::vector<Client>::iterator client, std::string channel_name) //TODO se if goes all the way 
+void Server::makeUserList(std::string channel_name)//isto esta ok
 {
 	std::map<std::string, Channel>::iterator channelIt = _channels.begin();
 	while (channelIt != _channels.end())
