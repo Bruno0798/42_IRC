@@ -15,7 +15,7 @@ std::vector<Client>::iterator Server::getClient(int clientFd)
 	throw std::runtime_error("Client not found");
 }
 
-void Server::makeUserList(std::string channel_name)
+void Server::makeUserList(std::string channel_name)//isto esta ok
 {
 	std::map<std::string, Channel>::iterator channelIt = _channels.begin();
 	while (channelIt != _channels.end())
