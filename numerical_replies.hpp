@@ -29,7 +29,7 @@
 # define RPL_TOPIC(nickname, channel, topic) (":localhost 332 " + (nickname) + " " + (channel) + " " + (topic) + "\r\n")
 
 //KICK
-# define ERR_USERNOTINCHANNEL(nickname, nick, channel) (":localhost 441 " + (nickname) + " " + (nick) + " " + (channel) + " :They aren't on that channel")
+# define ERR_USERNOTINCHANNEL(nickname, nick, channel) (":localhost 441 " + (nickname) + " " + (nick) + " " + (channel) + " :They aren't on that channel\r\n")
 # define ERR_NOSUCHNICK(nickname, nick) (":localhost 401 " + (nickname) + " " + (nick) + " :No such nick/channel\r\n")
 
 //MODE
