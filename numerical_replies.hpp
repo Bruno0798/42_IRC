@@ -50,7 +50,7 @@
 # define ERR_CHANOPRIVSNEEDED(nickname, channel) (":localhost 482 " + (nickname) + " " + (channel) + " :You're not channel operator\r\n")
 # define ERR_USERONCHANNEL(nickname, nick, channel) (":localhost 443 " + (nickname) + " " + (nick) + " " + (channel) + " :is already on channel\r\n")
 # define ERR_UNKNOWNCOMMAND(nickname, command) (":localhost 421 " + (nickname) + " " + (command) + " :Unknown command\r\n")
-
+# define ERR_CHANNELLENGTH(nickname, channel) (":localhost 479 " + (nickname) + " " + (channel) + " :Illegal channel name\r\n")
 
 
 

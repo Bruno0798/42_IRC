@@ -75,7 +75,7 @@ std::string getLower(const std::string& str)
 	return lower;
 }
 
-void Server::handleJoin(int client_fd, const std::string& channel_name, const std::string& pass)
+void Server::handleJoin(int client_fd, std::string& channel_name, const std::string& pass)
 {
 	if (channel_name[0] != '#')
 	{
@@ -93,7 +93,12 @@ void Server::handleJoin(int client_fd, const std::string& channel_name, const st
 	if (it == _channels.end() || !it->second.hasClient(_clientFd))
 		show = true;
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-    if (it == _channels.end()) 
+	if(channel_name.length() > 51)
+	{
+		send(_clientFd, ERR_CHANNELLENGTH(client_it->getNickname(), channel_name).c_str(), ERR_CHANNELLENGTH(client_it->getNickname(), channel_name).size(), 0);
+		return ;
+	}
+    if (it == _channels.end())
     {
         Channel new_channel(channel_name);
         new_channel.addClient(client_fd);
