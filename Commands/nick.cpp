@@ -55,7 +55,7 @@ void Server:: handleNick(int client_fd, const std::string& message)
 	std::string cmd, nickname, response;
 	iss >> cmd >> nickname;
 
-	nickname = nickname.substr(0, 8);
+	nickname = nickname.substr(0, 20);
 	std::vector<Client>::iterator	client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	if (nickname.empty())
 	{
