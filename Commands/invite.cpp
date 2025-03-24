@@ -72,6 +72,6 @@ void Server::handleInvite(int client_fd, const std::string& message)
     std::string success = ":localhost 341 " + inviter->getNickname() + " " + nickname + " " + channel_name + "\r\n";
     send(client_fd, success.c_str(), success.length(), 0);
 
-    std::string invite_msg = "You have been invited to " + channel_name + " by " + inviter->getNickname() + "\r\n";
+    std::string invite_msg =  ":" + inviter->getNickname() +"!"+ inviter->getUsername() + "@localhost INVITE " + target_it->getNickname() + " " + channel_name  + "\r\n";
     send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
 }

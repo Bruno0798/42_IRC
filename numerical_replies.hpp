@@ -33,17 +33,21 @@
 # define ERR_NOSUCHNICK(nickname, nick) (":localhost 401 " + (nickname) + " " + (nick) + " :No such nick/channel\r\n")
 
 //MODE
-
 # define RPL_CHANNELMODEIS(nickname, channel, mode) (":localhost 324 " + (nickname) + " " + (channel) + " " + (mode) + "\r\n")
 # define ERR_UMODEUNKNOWNFLAG(nickname) (":localhost 501 " + (nickname) + " :Unknown MODE flag\r\n")
 # define ERR_NOSUCHCHANNEL(nickname, channel) (":localhost 403 " + (nickname) + " " + (channel) + " :No such channel\r\n")
-
 
 //PRIVMSG
 # define ERR_NORECIPIENT(nickname, command) (":localhost 411 " + (nickname) + " :No recipient given " + (command) + "\r\n")
 # define ERR_NOTEXTTOSEND(nickname) (":localhost 412 " + (nickname) + " :No text to send\r\n")
 # define ERR_CANNOTSENDTOCHAN(nickname, channel) (":localhost 404 " + (nickname) + " " + (channel) + " :Cannot send to channel\r\n")
 
+
+//INVITE
+//TODO make the msgs to invite
+
+
+//GERAL
 # define ERR_NEEDMOREPARAMS(nickname, command) (":localhost 461 " + (nickname) + " " + (command) + " :Not enough parameters\r\n")
 # define ERR_ALREADYREGISTERED(nickname) (":localhost 462 " + (nickname) + " :You may not reregister\r\n")
 # define ERR_NOTONCHANNEL(nickname, channel) (":localhost 442 " + (nickname) + " " + (channel) + " :You're not on that channel\r\n")
