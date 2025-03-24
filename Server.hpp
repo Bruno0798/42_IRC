@@ -109,6 +109,6 @@ class Server
 };
 
 std::string getLower(const std::string& str);
-std::string getFullMsg(std::string &msg, std::istringstream &lineStream);
+std::string getFullMsg(std::string &msg, std::istringstream &lineStream, int size);
 
 #endif

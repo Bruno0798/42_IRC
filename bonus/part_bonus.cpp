@@ -29,7 +29,7 @@ void Server::checkCommandPart(std::istringstream &lineStream)
 		return ;
 	}
 
-	msg = getFullMsg(msg, lineStream);
+	msg = getFullMsg(msg, lineStream, 100);
 
 	std::stringstream channelStream(channels);
 	std::string channelName;

@@ -66,7 +66,7 @@ void Server::checkCommandTopic(std::istringstream &lineStream)
 		return ;
 	}
 
-	newTopic = getFullMsg(newTopic, lineStream);
+	newTopic = getFullMsg(newTopic, lineStream, 100);
 	commandTopic(It->first, newTopic);
 }
 

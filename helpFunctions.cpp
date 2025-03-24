@@ -84,7 +84,7 @@ void Server::broadcastMessageToChannel(const std::string& message, std::string c
 		throw std::runtime_error("No server found in the BroadCast Message");
 }
 
-std::string getFullMsg(std::string &msg, std::istringstream &lineStream)
+std::string getFullMsg(std::string &msg, std::istringstream &lineStream, int size)
 {
 	if (msg[0] == ':' && msg.size() > 1)
 	{
@@ -96,5 +96,5 @@ std::string getFullMsg(std::string &msg, std::istringstream &lineStream)
 			msg += nextWord;
 		}
 	}
-	return msg.substr(0, 500);
+	return msg.substr(0, size);
 }

@@ -2,10 +2,10 @@ NAME = ircserv
 NAME_bonus = ircserv_bonus
 
 SRC = main.cpp Server.cpp Client.cpp Channel.cpp Commands.cpp helpFunctions.cpp part.cpp utils.cpp Commands/ping.cpp Commands/join.cpp Commands/pass.cpp
-SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp 
+SRC += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp Commands/invite.cpp Commands/kick.cpp Commands/mode.cpp
 
 SRC_bonus = main.cpp Server.cpp Client.cpp Channel.cpp bonus/Commands_bonus.cpp helpFunctions.cpp bonus/part_bonus.cpp utils.cpp Commands/ping.cpp Commands/join.cpp Commands/pass.cpp
-SRC_bonus += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp bonus/Bot_bonus.cpp
+SRC_bonus += Commands/nick.cpp Commands/privmsg.cpp Commands/topic.cpp Commands/user.cpp Commands/quit.cpp Commands/invite.cpp Commands/kick.cpp Commands/mode.cpp bonus/Bot_bonus.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
