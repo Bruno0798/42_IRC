@@ -15,7 +15,6 @@ private:
 	std::string _realname;
 	std::string _password;
 	std::string _buffer;
-	int _port;
 	std::set<std::string> _joinedChannels; // Keep track of joined channels
 
 	bool _registered;
@@ -24,7 +23,7 @@ public:
 
 	Client();
 	Client(int fd); // New constructor
-	Client(int fd, const std::string& address, int port);
+	Client(int fd, const std::string& address);
 	~Client();
 
 	// Getters
@@ -52,9 +51,7 @@ public:
 
 	bool authenticate();
 
-	void joinChannel(const std::string& channelName) {
-		_joinedChannels.insert(channelName);
-	}
+	void joinChannel(const std::string& channelName);
 
 	void leaveChannel(const std::string& channelName) {
 		_joinedChannels.erase(channelName);

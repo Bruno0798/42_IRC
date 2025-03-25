@@ -23,10 +23,8 @@ class Channel
 		bool _hasUserLimit;
 
 	public:
-		Channel() : _inviteOnly(false), _topicRestricted(false), 
-                   _hasUserLimit(false), _userLimit(0) {}
-		Channel(const std::string& name) : _name(name), _inviteOnly(false),
-                _topicRestricted(false), _hasUserLimit(false), _userLimit(0) {}
+		Channel();
+		Channel(const std::string& name);
 
 		void 								setName(std::string name);
 		void 								setTopic(std::string topic);

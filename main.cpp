@@ -8,7 +8,7 @@ int check_args(int argc, char **argv)
 	if (argc != 3)
 	{
 		std::cerr << RED << "Correct usage is ./ircserv [port] [password] :)" << WHITE << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 
 	char *endPtr;
@@ -17,12 +17,12 @@ int check_args(int argc, char **argv)
 	if (*endPtr != '\0')
 	{
 		std::cerr << RED << "Port is not a valid number" << WHITE << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 	if (num < 1024 || num > 65535)
 	{
 		std::cerr << RED << "Port number invalid. Use a number between 1024 and 65535." << WHITE << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 
 	return num;
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	signal(SIGINT, signalHandler);
 	signal(SIGQUIT, signalHandler);
 	signal(SIGPIPE, signalHandler);
-	system("clear");
+	std::system("clear");
 
 	int port = check_args(argc, argv);
 	std::string password(argv[2]);
@@ -51,14 +51,14 @@ int main(int argc, char **argv)
 	if (!server.fillServerInfo(argv[1]))
 	{
 		std::cerr << RED << "Failed to fill server info." << WHITE << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 
 	// Initialize and run server
 	if (!server.initServer())
 	{
 		std::cerr << RED << "Server initialization failed." << WHITE << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 	server.runServer();
 	return 0;

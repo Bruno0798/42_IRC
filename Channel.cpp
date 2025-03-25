@@ -2,6 +2,16 @@
 #include "Client.hpp"
 
 
+Channel::Channel() :_inviteOnly(false), _topicRestricted(false), _userLimit(0), _hasUserLimit(false)
+{
+
+}
+
+Channel::Channel(const std::string &name) : _name(name), _inviteOnly(false),
+_topicRestricted(false), _userLimit(0), _hasUserLimit(false)
+{
+
+}
 
 void Channel::addClient(int client_fd)
 {
@@ -29,6 +39,8 @@ const std::string& Channel::getTopic()
 	return _topic;
 
 }
+
+
 
 const std::map<int, std::vector<std::string> >& Channel::getClients() const
 {

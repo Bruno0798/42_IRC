@@ -1,23 +1,28 @@
 #include "Client.hpp"
 
 Client::Client()
-		: _fd(-1), _port(), _registered(false), _authenticated(false)
+		: _fd(-1), _registered(false), _authenticated(false)
 {
 	// std::cout << "Client Default Constructor Called" << std::endl;
 }
 
 Client::Client(int fd)
-		: _fd(fd), _port(), _registered(false), _authenticated(false) // Initialize other members if necessary
+		: _fd(fd), _registered(false), _authenticated(false) // Initialize other members if necessary
 {
 	// std::cout << "Client Constructor with fd Called" << std::endl;
 }
 
-Client::Client(int fd, const std::string& address, int port)
-		: _fd(fd), _ipAddress(address), _port(port), _registered(false) {}
+Client::Client(int fd, const std::string& address)
+		: _fd(fd), _ipAddress(address), _registered(false) {}
 
 Client::~Client()
 {
 	// std::cout << "Client Destructor Called" << std::endl;
+}
+
+void Client::joinChannel(const std::string &channelName)
+{
+    _joinedChannels.insert(channelName);
 }
 
 // Getters

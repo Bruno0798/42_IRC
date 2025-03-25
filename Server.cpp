@@ -25,14 +25,14 @@ bool Server::fillServerInfo(char *port)
     char hostname[256];
     if (gethostname(hostname, sizeof(hostname)) == -1)
     {
-        perror("gethostname");
+        std::perror("gethostname");
         return false;
     }
 
     hostent *host = gethostbyname(hostname);
     if (host == NULL)
     {
-        perror("gethostbyname");
+        std::perror("gethostbyname");
         return false;
     }
     char ipstr[INET6_ADDRSTRLEN];
@@ -44,7 +44,7 @@ bool Server::fillServerInfo(char *port)
         addr = host->h_addr_list[0];
         inet_ntop(AF_INET6, addr, ipstr, sizeof(ipstr));
     }
-	memset(&_address, 0, sizeof(_address));
+	std::memset(&_address, 0, sizeof(_address));
     _address.ai_family = AF_UNSPEC;
     _address.ai_socktype = SOCK_STREAM;
     _address.ai_flags = AI_PASSIVE;
@@ -79,21 +79,21 @@ bool Server::initServer()
 	_fd = socket(_servinfo->ai_family, _servinfo->ai_socktype, _servinfo->ai_protocol);
 	if (_fd == -1)
 	{
-		perror("socket");
+		std::perror("socket");
 		return false;
 	}
 
 	int yes = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
-		perror("setsockopt");
+		std::perror("setsockopt");
 		return false;
 	}
 
 	if (bind(_fd, _servinfo->ai_addr, _servinfo->ai_addrlen) == -1)
 	{
 		close(_fd);
-		perror("bind");
+		std::perror("bind");
 		freeaddrinfo(_servinfo);
 		return false;
 	}
@@ -101,7 +101,7 @@ bool Server::initServer()
 
 	if (listen(_fd, 10) == -1)
 	{
-		perror("listen");
+		std::perror("listen");
 		return false;
 	}
 
@@ -148,7 +148,7 @@ void Server::runServer()
 		int poll_count = poll(fds.data(), fds.size(), -1);
 		if (poll_count == -1)
 		{
-			perror("poll");
+			std::perror("poll");
 			break;
 		}
 		for (size_t i = 0; i < fds.size(); ++i)
@@ -170,6 +170,11 @@ void Server::runServer()
 				handleClientError(fds, i);
 		}
 	}
+    for (size_t i = 0; i < fds.size(); ++i)
+    {
+        if (fds[i].fd > 0)
+            close(fds[i].fd);
+    }
 }
 
 void Server::handleNewConnection(std::vector<pollfd>& fds)
@@ -179,7 +184,7 @@ void Server::handleNewConnection(std::vector<pollfd>& fds)
 	int client_fd = accept(_fd, reinterpret_cast<struct sockaddr*>(&client_addr), &addr_size);
 	if (client_fd == -1)
 	{
-		perror("accept");
+		std::perror("accept");
 		return;
 	}
 	std::cout << GREEN << "New Connection on fd: " << client_fd << std::endl;
@@ -218,7 +223,7 @@ void Server::handleClientDisconnection(std::vector<pollfd>& fds, size_t i, int b
 		std::cout << RED <<  "Client disconnected: " << fds[i].fd << WHITE << std::endl;
 	}
 	else
-		perror("recv");
+		std::perror("recv");
 	close(fds[i].fd);
 	fds.erase(fds.begin() + i);
 	_clients.erase(_clients.begin() + (i - 1));
