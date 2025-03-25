@@ -12,7 +12,7 @@ OBJ = $(SRC:.cpp=.o)
 OBJ_bonus = $(SRC_bonus:.cpp=.o)
 
 CFLAGS = -Wall -Werror -Wextra
-CFLAGS = -std=c++98
+CFLAGS += -std=c++98
 
 all: $(NAME)
 

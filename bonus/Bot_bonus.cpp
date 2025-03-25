@@ -121,8 +121,7 @@ void Server::PartBot(const std::string &channelName)
 	std::string msg = "Have a nice day :D";
 	std::string leaveMsg = ":Comrade!Comrade@localhost PART " + channelName + " " + msg +"\r\n";
 	It->second.removeClient(424242);
-	makeUserList(channelName);
-	
+    broadcastMessageToClients(leaveMsg);
 	std::cout << "BOT LEAVE CHANNEL" << channelName <<"\n";
 }
 
