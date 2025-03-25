@@ -36,7 +36,7 @@ void Server::handleKick(int client_fd, const std::string& message)
     }
     if (!channel_it->second.isOperator(client_fd))
     {
-        send(client_fd, ERR_CHANOPRIVSNEEDED(kicker->getNickname(), channel).c_str(), ERR_CHANOPRIVSNEEDED(kicker->getNickname(), channel).length(), 0);
+        send(client_fd, ERR_CHANOPRIVSNEEDED(kicker->getNickname(), channel_it->first).c_str(), ERR_CHANOPRIVSNEEDED(kicker->getNickname(), channel_it->first).length(), 0);
         return;
     }
     if (kicker == _clients.end())
@@ -65,12 +65,12 @@ void Server::handleKick(int client_fd, const std::string& message)
         }
         if (!channel_it->second.isUserInChannel(target_fd))
         {
-            send(client_fd, ERR_USERNOTINCHANNEL(kicker->getNickname(), targets, channel).c_str(), ERR_USERNOTINCHANNEL(kicker->getNickname(), targets, channel).length(), 0);
+            send(client_fd, ERR_USERNOTINCHANNEL(kicker->getNickname(), targets, channel_it->first).c_str(), ERR_USERNOTINCHANNEL(kicker->getNickname(), targets, channel_it->first).length(), 0);
             continue;
         }
 
         std::string kick_msg = ":" + kicker->getNickname() + "!" + kicker->getUsername() + 
-                               "@localhost KICK " + channel + " " + it->getNickname() + " " + reason + "\r\n";
+                               "@localhost KICK " + channel_it->first + " " + it->getNickname() + " " + reason + "\r\n";
         
         broadcastMessageToChannel(kick_msg, channel);
         channel_it->second.revokePermissions(target_fd);
