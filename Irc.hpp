@@ -21,6 +21,7 @@
 # include <ctime>
 # include <algorithm>
 # include <cstdio>
+#include <fstream>
 
 #define BLUE "\033[34m"
 #define RED "\033[31m"

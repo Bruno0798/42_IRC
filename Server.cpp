@@ -10,26 +10,32 @@
 #include <poll.h>
 #include <vector>
 #include "numerical_replies.hpp"
-#include <fcntl.h>
 
 Server::Server() {}
+Server::Server(int port, std::string& password) : _port(port), _password(password) {}
+Server::~Server() {}
 
-Server::Server(int port, std::string& password)
-		: _port(port), _password(password) {}
-
-Server::~Server() {
+bool getHostname(std::string &hostname)
+{
+    std::ifstream file("/proc/sys/kernel/hostname");
+    if (!file.is_open()) {
+        std::cerr << "Failed to open /proc/sys/kernel/hostname" << std::endl;
+        return false;
+    }
+    std::getline(file, hostname);
+    file.close();
+    return true;
 }
-
 bool Server::fillServerInfo(char *port)
 {
-    char hostname[256];
-    if (gethostname(hostname, sizeof(hostname)) == -1)
+    std::string hostname;
+    if (!getHostname(hostname))
     {
         std::perror("gethostname");
         return false;
     }
 
-    hostent *host = gethostbyname(hostname);
+    hostent *host = gethostbyname(hostname.c_str());
     if (host == NULL)
     {
         std::perror("gethostbyname");
@@ -44,7 +50,7 @@ bool Server::fillServerInfo(char *port)
         addr = host->h_addr_list[0];
         inet_ntop(AF_INET6, addr, ipstr, sizeof(ipstr));
     }
-	std::memset(&_address, 0, sizeof(_address));
+    std::memset(&_address, 0, sizeof(_address));
     _address.ai_family = AF_UNSPEC;
     _address.ai_socktype = SOCK_STREAM;
     _address.ai_flags = AI_PASSIVE;
@@ -65,12 +71,12 @@ bool Server::fillServerInfo(char *port)
     std::cout << "                                                         " << std::endl;
 
     std::cout << std::endl
-        << "\t\tServer Information" << std::endl
-        << std::endl
-        << "\t" << std::setw(8) << std::left << "IP" << ": " << ipstr << std::endl
-        << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
-        << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
-        << std::endl;
+              << "\t\tServer Information" << std::endl
+              << std::endl
+              << "\t" << std::setw(8) << std::left << "IP" << ": " << ipstr << std::endl
+              << "\t" << std::setw(8) << std::left << "PORT" << ": " << port << std::endl
+              << "\t" << std::setw(8) << std::left << "PASS" << ": " << _password << std::endl
+              << std::endl;
     return true;
 }
 
