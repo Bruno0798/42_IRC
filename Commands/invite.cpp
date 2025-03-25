@@ -63,15 +63,15 @@ void Server::handleInvite(int client_fd, const std::string& message)
 	
     if (channel.hasClient(target_fd))
     {
-        send(client_fd, ERR_USERONCHANNEL(inviter->getNickname(), nickname, channel_name).c_str(), ERR_USERONCHANNEL(inviter->getNickname(), nickname, channel_name).length(), 0);
+        send(client_fd, ERR_USERONCHANNEL(inviter->getNickname(), target_it->getNickname(), channel_name).c_str(), ERR_USERONCHANNEL(inviter->getNickname(), target_it->getNickname(), channel_name).length(), 0);
         return;
     }
 
     channel.setAllowedClient(target_fd);
 
-    std::string success = ":localhost 341 " + inviter->getNickname() + " " + nickname + " " + channel_name + "\r\n";
+    std::string success = ":localhost 341 " + inviter->getNickname() + " " + target_it->getNickname() + " " + channel_it->first + "\r\n";
     send(client_fd, success.c_str(), success.length(), 0);
 
-    std::string invite_msg =  ":" + inviter->getNickname() +"!"+ inviter->getUsername() + "@localhost INVITE " + target_it->getNickname() + " " + channel_name  + "\r\n";
+    std::string invite_msg =  ":" + inviter->getNickname() +"!"+ inviter->getUsername() + "@localhost INVITE " + target_it->getNickname() + " " + channel_it->first  + "\r\n";
     send(target_fd, invite_msg.c_str(), invite_msg.length(), 0);
 }

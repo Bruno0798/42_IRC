@@ -11,11 +11,12 @@ void Server::handleMode(int client_fd, const std::string& message)
     std::string cmd, channel, modes, target;
     iss >> cmd >> channel >> modes;
 
+    std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	std::vector<Client>::iterator it = _clients.begin();
 	std::map<std::string, Channel>::iterator channel_it = _channels.begin();
 	if (channel.empty())
     {
-		send(client_fd, ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").length(), 0);
+		send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
 		return;
 	}
 
@@ -28,21 +29,21 @@ void Server::handleMode(int client_fd, const std::string& message)
 
     if (channel_it == _channels.end())
     {
-        send(client_fd, ERR_NOSUCHCHANNEL(it->getNickname(), channel).c_str(), ERR_NOSUCHCHANNEL(it->getNickname(), channel).length(), 0);
+        send(client_fd, ERR_NOSUCHCHANNEL(client_it->getNickname(), channel).c_str(), ERR_NOSUCHCHANNEL(client_it->getNickname(), channel).length(), 0);
         return;
     }
 
     if (modes.empty())
     {
         std::string current_modes = channel_it->second.getModeString();
-        std::string response = ":localhost 324 " + it->getNickname() + " " + channel + " :" + current_modes + "\r\n";
+        std::string response = ":localhost 324 " + client_it->getNickname() + " " + channel + " :" + current_modes + "\r\n";
         send(client_fd, response.c_str(), response.length(), 0);
         return;
     }
 
     if (!channel_it->second.isOperator(client_fd))
     {
-        send(client_fd, ERR_CHANOPRIVSNEEDED(it->getNickname(), channel).c_str(), ERR_CHANOPRIVSNEEDED(it->getNickname(), channel).length(), 0);
+        send(client_fd, ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).c_str(), ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).length(), 0);
         return;
     }
 
@@ -99,13 +100,13 @@ void Server::handleMode(int client_fd, const std::string& message)
 
 							if (target_fd == -1)
 							{
-								send(client_fd, ERR_NOSUCHNICK(it->getNickname(), target).c_str(), ERR_NOSUCHNICK(it->getNickname(), target).length(), 0);
+								send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).length(), 0);
 								return;
 							}
 
 							if (!channel_it->second.isUserInChannel(target_fd))
 							{
-								send(client_fd, ERR_USERNOTINCHANNEL(it->getNickname(), target, channel).c_str(), ERR_USERNOTINCHANNEL(it->getNickname(), target, channel).length(), 0);
+								send(client_fd, ERR_USERNOTINCHANNEL(client_it->getNickname(), target, channel).c_str(), ERR_USERNOTINCHANNEL(client_it->getNickname(), target, channel).length(), 0);
 								return;
 							}
 
@@ -122,16 +123,16 @@ void Server::handleMode(int client_fd, const std::string& message)
 							}
 							
 							applied_modes += (adding ? "+o" : "-o");
-							applied_target = target;
+							applied_target = it->getNickname();
 						}
 						catch (const std::runtime_error& e) {
-							send(client_fd, ERR_NOSUCHNICK(it->getNickname(), target).c_str(), ERR_NOSUCHNICK(it->getNickname(), target).length(), 0);
+							send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).length(), 0);
 							return;
 						}
 					}
                     else
                     {
-                        send(client_fd, ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").length(), 0);
+                        send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
                         return;
                     }
                     break;
@@ -143,7 +144,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                         iss >> extra_param;
                         if (extra_param.empty())
                         {
-                            send(client_fd, ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").length(), 0);
+                            send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
                             return;
                         }
                         channel_it->second.setPass(extra_param);
@@ -165,7 +166,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                         iss >> extra_param;
                         if (extra_param.empty() || !std::isdigit(extra_param[0]))
                         {
-                            send(client_fd, ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(it->getNickname(), "MODE").length(), 0);
+                            send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
                             return;
                         }
                         int limit = std::atoi(extra_param.c_str());
@@ -182,7 +183,7 @@ void Server::handleMode(int client_fd, const std::string& message)
                         applied_target = extra_param;
                     break;
                 default:
-                    send(client_fd, ERR_UMODEUNKNOWNFLAG(it->getNickname()).c_str(), ERR_UMODEUNKNOWNFLAG(it->getNickname()).length(), 0);
+                    send(client_fd, ERR_UMODEUNKNOWNFLAG(client_it->getNickname()).c_str(), ERR_UMODEUNKNOWNFLAG(client_it->getNickname()).length(), 0);
                     return;
             }
         }
@@ -197,5 +198,3 @@ void Server::handleMode(int client_fd, const std::string& message)
         broadcastMessageToChannel(mode_msg, channel);
     }
 }
-
-
