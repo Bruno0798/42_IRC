@@ -193,8 +193,8 @@ void Server::handleMode(int client_fd, const std::string& message)
     if (setter != _clients.end())
     {
         std::string mode_msg = ":" + setter->getNickname() + "!" + setter->getUsername() + 
-                              "@localhost MODE " + channel + " " + applied_modes +
+                              "@localhost MODE " + channel_it->first + " " + applied_modes +
                               (applied_target.empty() ? "" : " " + applied_target) + "\r\n";
-        broadcastMessageToChannel(mode_msg, channel);
+        broadcastMessageToChannel(mode_msg, channel_it->first);
     }
 }
