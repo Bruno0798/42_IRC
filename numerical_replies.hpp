@@ -26,7 +26,7 @@
 # define ERR_INVITEONLYCHAN(nickname, channel) (":localhost 473 " + (nickname) + " " + (channel) + " :Cannot join channel (+i)\r\n")
 # define ERR_BADCHANNELKEY(nickname, channel) (":localhost 475 " + (nickname) + " " + (channel) + " Cannot join channel (+k)\r\n")
 # define ERR_BADCHANMASK(channel) (":localhost 476 " + (channel) + " :Bad Channel Mask\r\n")
-# define RPL_TOPIC(nickname, channel, topic) (":localhost 332 " + (nickname) + " " + (channel) + " " + (topic) + "\r\n")
+# define RPL_TOPIC(nickname, channel, topic) (":localhost 332 " + (nickname) + " " + (channel) + " :" + (topic) + "\r\n")
 
 //KICK
 # define ERR_USERNOTINCHANNEL(nickname, nick, channel) (":localhost 441 " + (nickname) + " " + (nick) + " " + (channel) + " :They aren't on that channel\r\n")
