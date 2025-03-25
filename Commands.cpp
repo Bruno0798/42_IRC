@@ -57,16 +57,14 @@ void Server::handleCommand(Client& user, int client_fd)
 			else if (cmdsCpy =="PRIVMSG") handlePrivmsg(client_fd, line);
 			else if (cmdsCpy =="PART") checkCommandPart(cmd);
 			else
-			{
-				std::string errMsg = ":localhost 421 " + user.getNickname() + " " + cmds + " :Unknown commands\r\n";
-				send(_clientFd, errMsg.c_str(), errMsg.size(), 0);
-			}
+				send(_clientFd, ERR_UNKNOWNCOMMAND(user.getNickname(), cmds).c_str(), ERR_UNKNOWNCOMMAND(user.getNickname(), cmds).size(), 0);
 		}
 	}
 	user.delete_buffer();
 }
 
-int Server::getClientFdByName(const std::string& nickname) {
+int Server::getClientFdByName(const std::string& nickname)
+{
 	for (std::vector<Client>::iterator clientIt = _clients.begin(); clientIt != _clients.end(); ++clientIt) {
 		if (clientIt->getNickname() == nickname)
 			return clientIt->getFd();

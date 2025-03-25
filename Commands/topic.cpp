@@ -76,7 +76,7 @@ void Server::commandTopic(const std::string &channelName, std::string &newTopic)
 
 	if (newTopic.empty() || !std::isprint(newTopic[0]))
 	{
-		std::string topicMsg = getChannelTopic(channelName);
+		std::string topicMsg = ":" + getChannelTopic(channelName);
 		if (topicMsg.empty())
 			send(_clientFd, RPL_NOTOPIC(getClient(_clientFd)->getNickname(), channelName).c_str(), RPL_NOTOPIC(getClient(_clientFd)->getNickname(), channelName).size(), 0);
 		else
