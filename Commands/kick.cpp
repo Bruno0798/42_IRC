@@ -60,7 +60,7 @@ void Server::handleKick(int client_fd, const std::string& message)
 
         if (it == _clients.end())
         {
-            send(client_fd, ERR_NOSUCHNICK(kicker->getNickname(), it->getNickname()).c_str(), ERR_NOSUCHNICK(kicker->getNickname(), it->getNickname()).length(), 0);
+            send(client_fd, ERR_NOSUCHNICK(kicker->getNickname(), targets).c_str(), ERR_NOSUCHNICK(kicker->getNickname(), targets).length(), 0);
             continue;
         }
         if (!channel_it->second.isUserInChannel(target_fd))

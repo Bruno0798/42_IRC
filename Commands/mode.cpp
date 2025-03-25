@@ -62,10 +62,22 @@ void Server::handleMode(int client_fd, const std::string& message)
             switch (modes[i])
             {
                 case 'i':
+					if (adding)
+						if(channel_it->second.isInviteOnly())
+							continue;
+					if (!adding)
+						if (!channel_it->second.isInviteOnly())
+							continue;
                     channel_it->second.setInviteOnly(adding);
                     applied_modes += (adding ? "+i" : "-i");
                     break;
                 case 't':
+					if (adding)
+						if(channel_it->second.isTopicRestricted())
+							continue;
+					if (!adding)
+						if (!channel_it->second.isTopicRestricted())
+							continue;
                     channel_it->second.setTopicRestricted(adding);
                     applied_modes += (adding ? "+t" : "-t");
                     break;
@@ -100,12 +112,12 @@ void Server::handleMode(int client_fd, const std::string& message)
 							if (adding)
 							{
 								if(channel_it->second.isOperator(target_fd))
-									return;
+									continue;;
 								channel_it->second.addOperator(target_fd);
 							}
 							else{
 								if(!channel_it->second.isOperator(target_fd))
-									return;
+									continue;
 								channel_it->second.removeOperator(target_fd);
 							}
 							
@@ -126,6 +138,8 @@ void Server::handleMode(int client_fd, const std::string& message)
                 case 'k':
                     if (adding)
                     {
+						if (channel_it->second.isPasswordProtected())
+							continue;
                         iss >> extra_param;
                         if (extra_param.empty())
                         {
@@ -137,6 +151,8 @@ void Server::handleMode(int client_fd, const std::string& message)
                     }
                     else
                     {
+						if (!channel_it->second.isPasswordProtected())
+							continue;
                         channel_it->second.removePass();
                     }
                     applied_modes += (adding ? "+k" : "-k");
@@ -144,6 +160,8 @@ void Server::handleMode(int client_fd, const std::string& message)
                 case 'l':
                     if (adding)
                     {
+						if (channel_it->second.hasUserLimit())
+							continue;
                         iss >> extra_param;
                         if (extra_param.empty() || !std::isdigit(extra_param[0]))
                         {
@@ -155,6 +173,8 @@ void Server::handleMode(int client_fd, const std::string& message)
                     }
                     else
                     {
+						if (!channel_it->second.hasUserLimit())
+							continue;
                         channel_it->second.removeUserLimit();
                     }
                     applied_modes += (adding ? "+l" : "-l");

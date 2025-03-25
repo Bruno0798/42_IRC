@@ -60,6 +60,9 @@ class Channel
             _operators.erase(client_fd); 
         }
 
+		bool isPasswordProtected() const { return !_pass.empty(); }
+		const std::string& getPass() const { return _pass; }
+
         // Mode +i (invite-only)
         bool isInviteOnly() const { return _inviteOnly; }
         void setInviteOnly(bool value) { _inviteOnly = value; }
