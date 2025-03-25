@@ -21,7 +21,7 @@
 # define ERR_NICKNAMEINUSE(nickname, nick) (":localhost 433 " + (nickname) + " " + (nick) + " :Nickname is already in use\r\n")
 
 //JOIN
-# define RPL_NOTOPIC(nickname, channel) ("localhost 331 " + (nickname) + " " + (channel) + " :No topic is set\r\n")
+# define RPL_NOTOPIC(nickname, channel) (":localhost 331 " + (nickname) + " " + (channel) + " :No topic is set\r\n")
 # define ERR_CHANNELISFULL(nickname, channel) (":localhost 471 " + (nickname) + " " + (channel) + " :Cannot join channel (+l)\r\n")
 # define ERR_INVITEONLYCHAN(nickname, channel) (":localhost 473 " + (nickname) + " " + (channel) + " :Cannot join channel (+i)\r\n")
 # define ERR_BADCHANNELKEY(nickname, channel) (":localhost 475 " + (nickname) + " " + (channel) + " Cannot join channel (+k)\r\n")
