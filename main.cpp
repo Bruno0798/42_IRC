@@ -31,6 +31,8 @@ int check_args(int argc, char **argv)
 void signalHandler(int signum)
 {
 	std::cout << "Interrupt signal (" << signum << ") received.\n";
+	if (signum == 13)
+		return;
 	shut_down = true;
 }
 
