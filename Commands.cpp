@@ -66,7 +66,8 @@ void Server::handleCommand(Client& user, int client_fd)
 	user.delete_buffer();
 }
 
-int Server::getClientFdByName(const std::string& nickname) {
+int Server::getClientFdByName(const std::string& nickname)
+{
 	for (std::vector<Client>::iterator clientIt = _clients.begin(); clientIt != _clients.end(); ++clientIt) {
 		if (clientIt->getNickname() == nickname)
 			return clientIt->getFd();
