@@ -4,32 +4,31 @@
 #include "../Channel.hpp"
 
 
-
 void Server::handleMode(int client_fd, const std::string& message)
 {
     std::istringstream iss(message);
-    std::string cmd, channel, modes, target;
+    std::string cmd, channel, modes, target, password;
     iss >> cmd >> channel >> modes;
 
     std::vector<Client>::iterator client_it = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
 	std::vector<Client>::iterator it = _clients.begin();
-	std::map<std::string, Channel>::iterator channel_it = _channels.begin();
-	if (channel.empty())
-    {
-		send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
-		return;
-	}
+    std::map<std::string, Channel>::iterator channel_it = _channels.find(channel);
 
-    while (channel_it != _channels.end())
+    if (channel.empty())
     {
-        if (getLower(channel_it->first) == getLower(channel))
-            break;
-        ++channel_it;
+        send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
+        return;
     }
 
     if (channel_it == _channels.end())
     {
         send(client_fd, ERR_NOSUCHCHANNEL(client_it->getNickname(), channel).c_str(), ERR_NOSUCHCHANNEL(client_it->getNickname(), channel).length(), 0);
+        return;
+    }
+
+    if (!channel_it->second.isOperator(client_fd))
+    {
+        send(client_fd, ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).c_str(), ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).length(), 0);
         return;
     }
 
@@ -41,160 +40,153 @@ void Server::handleMode(int client_fd, const std::string& message)
         return;
     }
 
-    if (!channel_it->second.isOperator(client_fd))
-    {
-        send(client_fd, ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).c_str(), ERR_CHANOPRIVSNEEDED(client_it->getNickname(), channel).length(), 0);
-        return;
-    }
-
-    bool adding = true;
     std::string applied_modes;
     std::string applied_target;
-    std::string extra_param;
+    std::string error_msg;
 
+    bool adding = true;
     for (size_t i = 0; i < modes.length(); ++i)
     {
         if (modes[i] == '+')
+        {
             adding = true;
+        }
         else if (modes[i] == '-')
+        {
             adding = false;
+        }
         else
         {
             switch (modes[i])
             {
                 case 'i':
-					if (adding)
-						if(channel_it->second.isInviteOnly())
-							continue;
-					if (!adding)
-						if (!channel_it->second.isInviteOnly())
-							continue;
-                    channel_it->second.setInviteOnly(adding);
-                    applied_modes += (adding ? "+i" : "-i");
+                    if (adding != channel_it->second.isInviteOnly())
+                    {
+                        channel_it->second.setInviteOnly(adding);
+                        applied_modes += (adding ? "+i" : "-i");
+                    }
                     break;
                 case 't':
-					if (adding)
-						if(channel_it->second.isTopicRestricted())
-							continue;
-					if (!adding)
-						if (!channel_it->second.isTopicRestricted())
-							continue;
-                    channel_it->second.setTopicRestricted(adding);
-                    applied_modes += (adding ? "+t" : "-t");
+                    if (adding != channel_it->second.isTopicRestricted())
+                    {
+                        channel_it->second.setTopicRestricted(adding);
+                        applied_modes += (adding ? "+t" : "-t");
+                    }
                     break;
                 case 'o':
-					iss >> target;
-					if (!target.empty())
-					{
-						try {
-							int target_fd = -1;
-							while (it != _clients.end())
-							{
-								if (getLower(it->getNickname()) == getLower(target))
-								{
-									target_fd = it->getFd();
-									break;
-								}
-								++it;
-							}
-
-							if (target_fd == -1)
-							{
-								send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).length(), 0);
-								return;
-							}
-
-							if (!channel_it->second.isUserInChannel(target_fd))
-							{
-								send(client_fd, ERR_USERNOTINCHANNEL(client_it->getNickname(), target, channel).c_str(), ERR_USERNOTINCHANNEL(client_it->getNickname(), target, channel).length(), 0);
-								return;
-							}
-
-							if (adding)
-							{
-								if(channel_it->second.isOperator(target_fd))
-									continue;;
-								channel_it->second.addOperator(target_fd);
-							}
-							else{
-								if(!channel_it->second.isOperator(target_fd))
-									continue;
-								channel_it->second.removeOperator(target_fd);
-							}
-							
-							applied_modes += (adding ? "+o" : "-o");
-							applied_target = it->getNickname();
-						}
-						catch (const std::runtime_error& e) {
-							send(client_fd, ERR_NOSUCHNICK(client_it->getNickname(), target).c_str(), ERR_NOSUCHNICK(client_it->getNickname(), target).length(), 0);
-							return;
-						}
-					}
-                    else
+                    if (!(iss >> target))
                     {
-                        send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
-                        return;
+                        error_msg += ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE");
+                        break;
+                    }
+                    {
+                        int target_fd = -1;
+                        for (it = _clients.begin(); it != _clients.end(); ++it)
+                        {
+                            if (getLower(it->getNickname()) == getLower(target))
+                            {
+                                target_fd = it->getFd();
+                                break;
+                            }
+                        }
+                        if (target_fd == -1 || !channel_it->second.isUserInChannel(target_fd))
+                        {
+                            error_msg += ERR_USERNOTINCHANNEL(client_it->getNickname(), target, channel);
+                            break;
+                        }
+                        if (adding)
+                        {
+                            if (!channel_it->second.isOperator(target_fd))
+                            {
+                                channel_it->second.addOperator(target_fd);
+                                applied_modes += "+o";
+                                applied_target += " " + target;
+                            }
+                        }
+                        else
+                        {
+                            if (channel_it->second.isOperator(target_fd))
+                            {
+                                channel_it->second.removeOperator(target_fd);
+                                applied_modes += "-o";
+                                applied_target += " " + target;
+                            }
+                        }
                     }
                     break;
                 case 'k':
                     if (adding)
                     {
-						if (channel_it->second.isPasswordProtected())
-							continue;
-                        iss >> extra_param;
-                        if (extra_param.empty())
-                        {
-                            send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
-                            return;
-                        }
-                        channel_it->second.setPass(extra_param);
-						applied_target = extra_param;
+						if (!(iss >> password))
+						{
+							error_msg += ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE");
+							break;
+						}
+                        if (channel_it->second.isPasswordProtected() && password != channel_it->second.getPass())
+						{
+							error_msg += ERR_KEYSET(client_it->getNickname(), channel_it->first);
+							break;
+						}
+						else if (channel_it->second.isPasswordProtected())
+							break;
+                        channel_it->second.setPass(password);
+                        applied_modes += "+k";
+                        applied_target += " " + password;
                     }
                     else
                     {
-						if (!channel_it->second.isPasswordProtected())
-							continue;
-                        channel_it->second.removePass();
+						if (!(iss >> password))
+                        {
+                            error_msg += ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE");
+                            break;
+                        }
+                        if (channel_it->second.isPasswordProtected() && password == channel_it->second.getPass())
+                        {
+                            channel_it->second.removePass();
+                            applied_modes += "-k";
+                        }
                     }
-                    applied_modes += (adding ? "+k" : "-k");
                     break;
                 case 'l':
                     if (adding)
                     {
 						if (channel_it->second.hasUserLimit())
-							continue;
-                        iss >> extra_param;
-                        if (extra_param.empty() || !std::isdigit(extra_param[0]))
+							break;
+                        if (!(iss >> target) || !std::isdigit(target[0]))
                         {
-                            send(client_fd, ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").c_str(), ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE").length(), 0);
-                            return;
+                            error_msg += ERR_NEEDMOREPARAMS(client_it->getNickname(), "MODE");
+                            break;
                         }
-                        int limit = std::atoi(extra_param.c_str());
+                        int limit = std::atoi(target.c_str());
                         channel_it->second.setUserLimit(limit);
+                        applied_modes += "+l";
+                        applied_target += " " + target;
                     }
                     else
                     {
-						if (!channel_it->second.hasUserLimit())
-							continue;
-                        channel_it->second.removeUserLimit();
+                        if (channel_it->second.hasUserLimit())
+                        {
+                            channel_it->second.removeUserLimit();
+                            applied_modes += "-l";
+                        }
                     }
-                    applied_modes += (adding ? "+l" : "-l");
-                    if (adding)
-                        applied_target = extra_param;
                     break;
                 default:
-                    send(client_fd, ERR_UMODEUNKNOWNFLAG(client_it->getNickname()).c_str(), ERR_UMODEUNKNOWNFLAG(client_it->getNickname()).length(), 0);
-                    return;
+                    error_msg += ERR_UMODEUNKNOWNFLAG(client_it->getNickname());
+                    break;
             }
+			adding = true;
         }
     }
 
-    std::vector<Client>::iterator setter = std::find_if(_clients.begin(), _clients.end(), ClientFdMatcher(client_fd));
-    if (setter != _clients.end())
+    if (!applied_modes.empty())
     {
-        std::string mode_msg = ":" + setter->getNickname() + "!" + setter->getUsername() + 
-                              "@localhost MODE " + channel_it->first + " " + applied_modes +
-                              (applied_target.empty() ? "" : " " + applied_target) + "\r\n";
+        std::string mode_msg = ":" + client_it->getNickname() + "!" + client_it->getUsername() +
+                               "@localhost MODE " + channel_it->first + " " + applied_modes +
+                               (applied_target.empty() ? "" : " " + applied_target) + "\r\n";
         broadcastMessageToChannel(mode_msg, channel_it->first);
     }
+
+    if (!error_msg.empty())
+        send(client_fd, error_msg.c_str(), error_msg.length(), 0);
 }
