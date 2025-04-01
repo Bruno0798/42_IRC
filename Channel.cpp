@@ -88,3 +88,110 @@ void Channel::revokePermissions(int client_fd)
 	if (invite_it != _allowedClients.end())
 		_allowedClients.erase(invite_it);
 }
+
+bool Channel::isOperator(int client_fd) const
+{ 
+		return _operators.find(client_fd) != _operators.end(); 
+}
+
+void Channel::addOperator(int client_fd)
+{ 
+	_operators.insert(client_fd); 
+}
+
+void Channel::removeOperator(int client_fd)
+{ 
+	_operators.erase(client_fd); 
+}
+
+bool Channel::isPasswordProtected() const
+{
+	return !_pass.empty();
+}
+
+const std::string& Channel::getPass() const
+{
+	return _pass;
+}
+
+bool Channel::isInviteOnly() const
+{ 
+	return _inviteOnly; 
+}
+
+void Channel::setInviteOnly(bool value)
+{ 
+	_inviteOnly = value; 
+}
+
+bool Channel::isTopicRestricted() const
+{ 
+	return _topicRestricted; 
+}
+
+void Channel::setTopicRestricted(bool value)
+{ 
+	_topicRestricted = value;
+}
+
+bool Channel::hasUserLimit() const
+{ 
+	return _hasUserLimit;
+}
+
+size_t Channel::getUserLimit() const
+{ 
+	return _userLimit;
+}
+
+void Channel::setUserLimit(size_t limit)
+{ 
+	_userLimit = limit;
+	_hasUserLimit = true;
+}
+
+void Channel::removeUserLimit()
+{ 
+	_hasUserLimit = false;
+	_userLimit = 0;
+}
+
+int Channel::canJoin(int client_fd, const std::string &pass) const
+{
+	if (_hasUserLimit && _clients.size() >= _userLimit)
+		return 471; // ERR_CHANNELISFULL
+	if (_inviteOnly && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
+		return 473;// ERR_INVITEONLYCHAN
+	if (!_pass.empty() && _pass != pass && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
+		return 475; // ERR_BADCHANNELKEY
+	return 0;
+}
+
+bool Channel::hasClient(int client_fd) const
+{
+	return _clients.find(client_fd) != _clients.end();
+}
+
+std::string Channel::getModeString() const
+{
+	std::string modes = "+";
+	if (_inviteOnly) modes += "i";
+	if (_topicRestricted) modes += "t";
+	if (_hasUserLimit) modes += "l";
+	if (_pass.size() > 0) modes += "k";
+	return modes;
+}
+
+
+bool Channel::isUserInChannel(int client_fd) const
+{
+	std::map<int, std::vector<std::string> >::const_iterator it;
+	for (it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (it->first == client_fd)
+		{
+			return true;
+		}
+	}
+	return false;
+}

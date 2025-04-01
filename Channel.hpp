@@ -43,86 +43,33 @@ class Channel
 		void								revokePermissions(int client_fd);
 
 		
-		 bool isOperator(int client_fd) const 
-        { 
-            return _operators.find(client_fd) != _operators.end(); 
-        }
+		bool 								isOperator(int client_fd) const;
+
 		// Mode +o (operator)
-        void addOperator(int client_fd) 
-        { 
-            _operators.insert(client_fd); 
-        }
-
-        void removeOperator(int client_fd) 
-        { 
-            _operators.erase(client_fd); 
-        }
-
-		bool isPasswordProtected() const { return !_pass.empty(); }
-		const std::string& getPass() const { return _pass; }
+        void 								addOperator(int client_fd);
+        void 								removeOperator(int client_fd);
+        
+		bool								isPasswordProtected() const;
+		const std::string& 					getPass() const;
 
         // Mode +i (invite-only)
-        bool isInviteOnly() const { return _inviteOnly; }
-        void setInviteOnly(bool value) { _inviteOnly = value; }
+        bool 								isInviteOnly() const;
+        void 								setInviteOnly(bool value);
 
         // Mode +t (topic restriction)
-        bool isTopicRestricted() const { return _topicRestricted; }
-        void setTopicRestricted(bool value) { _topicRestricted = value; }
+        bool 								isTopicRestricted() const;
+        void 								setTopicRestricted(bool value);
 
         // Mode +l (user limit)
-        bool hasUserLimit() const { return _hasUserLimit; }
-        size_t getUserLimit() const { return _userLimit; }
-        void setUserLimit(size_t limit) 
-        { 
-            _userLimit = limit;
-            _hasUserLimit = true;
-        }
-        void removeUserLimit() 
-        { 
-            _hasUserLimit = false;
-            _userLimit = 0;
-        }
+        bool 								hasUserLimit() const;
+        size_t 								getUserLimit() const;
+        void 								setUserLimit(size_t limit);
+        void 								removeUserLimit();
 
-        int canJoin(int client_fd, const std::string &pass) const 
-        {
-            if (_hasUserLimit && _clients.size() >= _userLimit)
-                return 471; // ERR_CHANNELISFULL
-            if (_inviteOnly && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
-                return 473;// ERR_INVITEONLYCHAN
-			if (!_pass.empty() && _pass != pass && std::find(_allowedClients.begin(), _allowedClients.end(), client_fd) == _allowedClients.end())
-				return 475; // ERR_BADCHANNELKEY
-            return 0;
-        }
-
-        bool hasClient(int client_fd) const
-        {
-            return _clients.find(client_fd) != _clients.end();
-        }
-
-        std::string getModeString() const 
-        {
-            std::string modes = "+";
-            if (_inviteOnly) modes += "i";
-            if (_topicRestricted) modes += "t";
-            if (_hasUserLimit) modes += "l";
-//			if (_operators.size() > 0) modes += "o";
-			if (_pass.size() > 0) modes += "k";
-            return modes;
-        }
-
-		bool isUserInChannel(int client_fd) const
-		{
-			std::map<int, std::vector<std::string> >::const_iterator it;
-			for (it = _clients.begin(); it != _clients.end(); ++it)
-			{
-				if (it->first == client_fd)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
+        int 								canJoin(int client_fd, const std::string &pass) const;
+        bool 								hasClient(int client_fd) const;
+        std::string 						getModeString() const;
+		bool 								isUserInChannel(int client_fd) const;
 };
 
 #endif // CHANNEL_HPP
