@@ -11,10 +11,10 @@ class Channel
 	private:
 		
 		std::string _name;
-		std::map<int, std::vector<std::string> > _clients; // Os clientes e as suas permicoes
+		std::map<int, std::vector<std::string> > _clients;
 		std::string _topic;
 		std::string _pass;                                     
-		std::vector<int> _allowedClients; // Para ser usado pelos canais privados 
+		std::vector<int> _allowedClients;
 
 		std::set<int> _operators;
 		bool _inviteOnly;

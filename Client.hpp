@@ -53,12 +53,6 @@ public:
 
 	void joinChannel(const std::string& channelName);
 
-	void leaveChannel(const std::string& channelName) {
-		_joinedChannels.erase(channelName);
-	}
-
-	const std::set<std::string>& getJoinedChannels() const { return _joinedChannels; }
-
 };
 
 #endif

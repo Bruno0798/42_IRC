@@ -284,3 +284,12 @@ void Server::welcome_messages(int client_fd)
 	send(user.getFd(), msg.c_str(), msg.size(), 0);
 	send(user.getFd(), msgEnd.c_str(), msgEnd.size(), 0);
 }
+
+Server::ClientFdMatcher::ClientFdMatcher(int fd) : _fd(fd)
+{
+
+}
+
+bool Server::ClientFdMatcher::operator()(const Client &client) const {
+	return client.getFd() == _fd;
+}

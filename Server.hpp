@@ -32,19 +32,14 @@ class Server
 		void parseClientInfo(const std::string& buffer, int client_fd);
 		void parseClientInfo(Client &user, int client_fd);
 		int getClientFdByName(const std::string& nickname);
-
 		void handleNewConnection(std::vector<struct pollfd>& fds);
 		void handleClientDisconnection(std::vector<struct pollfd>& fds, size_t i, int bytes_received, const std::string &leaveMsg);
 		bool handleClientData(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientWrite(std::vector<struct pollfd>& fds, size_t i);
 		void handleClientError(std::vector<struct pollfd>& fds, size_t i);
-
 		bool checkBuffer(const std::string& buffer);
 		void checkRegist(int client_fd);
 		std::string getPass();
-
-
-		//------------- COMMANDS --------------- //
 		std::string sendMessage(std::string &buff);
 		void handleCommand(Client &user, int client_fd);
 		void handleNick(int client_fd, const std::string& message);
@@ -56,10 +51,6 @@ class Server
 		void handlePrivmsg(int client_fd, const std::string& message);
 		void handleRegistration(const std::string& cmd, int client_fd, const std::string& line);
 		void handleUserCommand(const std::string& cmd, std::istringstream& cmdStream, int client_fd, const std::string& line);
-
-
-
-	//------------- Diogo ----------------
 		void							makeUserList(std::string channel);
 		void							broadcastMessageToChannel(const std::string& message, std::string channel);
 		void							broadcastMessageToClients(const std::string& message);
@@ -74,8 +65,6 @@ class Server
 		void							removeClientsFromChannels(int clientFd, const std::string &msg);
 		void							checkCommandJoin(int client_fd, std::istringstream &lineStream);
 		void							commandQuit(std::vector<struct pollfd>& fds, size_t i, std::istringstream &msg);
-		
-		
 		void							checkCommandBot(std::istringstream &lineStream);
 		void							commandBot(std::string &channelName, const std::string &msg);
 		bool							LookBotInChannel(std::string channel);
@@ -83,29 +72,19 @@ class Server
 		void							PartBot(const std::string &channelName);
 		void							PrivmsgBot(const std::string& channel, const std::string& msg);
 		std::string						getMsg();
-
-		//-------------------------------------
-
-		// ------------ Biltes ----------------
 		void handleKick(int client_fd, const std::string& message);
 		void handleInvite(int client_fd, const std::string& message);
 		void handleMode(int client_fd, const std::string& message);
 		bool checkUserExists(const std::string& nickname) const;
-
-
-
-
 		void welcome_messages(int client_fd);
-		class ClientFdMatcher {
+		class ClientFdMatcher
+		{
 		public:
-			ClientFdMatcher(int fd) : _fd(fd) {}
-
-		bool operator()(const Client& client) const {
-			return client.getFd() == _fd;
-		}
-	private:
-		int _fd;
-	};
+			ClientFdMatcher(int fd);
+			bool operator()(const Client &client) const;
+		private:
+			int _fd;
+		};
 };
 
 std::string getLower(const std::string& str);
