@@ -32,3 +32,5 @@
 *.app
 
 .qodo
+.idea
+.vscode
